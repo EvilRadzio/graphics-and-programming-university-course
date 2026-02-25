@@ -2,10 +2,14 @@
 
 #include <bitset>
 #include <cassert>
+#include <optional>
+
 #include <SFML/Window.hpp>
 
 namespace gp
 {
+	// Add bindings
+
 	class Input
 	{
 	public:
@@ -14,22 +18,44 @@ namespace gp
 		~Input() = default;
 
 		bool isHeld(sf::Keyboard::Scan scan) const { return m_keyboardHeld[static_cast<size_t>(scan) + 1]; }
-
 		bool isPressed(sf::Keyboard::Scan scan) const { return m_keyboardPressed[static_cast<size_t>(scan) + 1]; }
-
 		bool isReleased(sf::Keyboard::Scan scan) const { return m_keyboardReleased[static_cast<size_t>(scan) + 1]; }
-
-		bool isHeld(sf::Mouse::Button button) const { return m_mouseHeld[static_cast<size_t>(button) + 1]; }
-
-		bool isPressed(sf::Mouse::Button button) const { return m_mousePressed[static_cast<size_t>(button) + 1]; }
-
-		bool isReleased(sf::Mouse::Button button) const { return m_mouseReleased[static_cast<size_t>(button) + 1]; }
-
+		bool isHeld(sf::Mouse::Button button) const { return m_mouseHeld[static_cast<size_t>(button)]; }
+		bool isPressed(sf::Mouse::Button button) const { return m_mousePressed[static_cast<size_t>(button)]; }
+		bool isReleased(sf::Mouse::Button button) const { return m_mouseReleased[static_cast<size_t>(button)]; }
 		bool isAnyPressed() const { return m_mousePressed.any() || m_keyboardPressed.any(); }
-
 		bool isMouseInWindow() const { return m_mouseInWindow; }
-
 		sf::Vector2i getMousePosition() const { return m_mousePosition; }
+
+		std::optional<sf::Keyboard::Key> justPressedKey() {
+			if (m_keyboardPressed.none())
+			{
+				return {};
+			}
+
+			for (size_t i = 0; i < m_keyboardPressed.size(); ++i)
+			{
+				if (m_keyboardPressed.test(i))
+				{
+					return static_cast<sf::Keyboard::Key>(i - 1);
+				}
+			}
+		}
+
+		std::optional<sf::Mouse::Button> justPressedButton() {
+			if (m_mousePressed.none())
+			{
+				return {};
+			}
+
+			for (size_t i = 0; i < m_keyboardPressed.size(); ++i)
+			{
+				if (m_mousePressed.test(i))
+				{
+					return static_cast<sf::Mouse::Button>(i);
+				}
+			}
+		}
 
 		void readEvent(const sf::Event& e)
 		{
@@ -103,14 +129,14 @@ namespace gp
 
 		void registerPress(const sf::Event::MouseButtonPressed* const button)
 		{
-			m_mousePressed.set(static_cast<size_t>(button->button) + 1, true);
-			m_mouseHeld.set(static_cast<size_t>(button->button) + 1, true);
+			m_mousePressed.set(static_cast<size_t>(button->button), true);
+			m_mouseHeld.set(static_cast<size_t>(button->button), true);
 		}
 
 		void registerRelease(const sf::Event::MouseButtonReleased* const button)
 		{
-			m_mouseReleased.set(static_cast<size_t>(button->button) + 1, true);
-			m_mouseHeld.set(static_cast<size_t>(button->button) + 1, false);
+			m_mouseReleased.set(static_cast<size_t>(button->button), true);
+			m_mouseHeld.set(static_cast<size_t>(button->button), false);
 		}
 		
 		std::bitset<sf::Keyboard::ScancodeCount> m_keyboardHeld;

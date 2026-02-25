@@ -14,6 +14,8 @@ namespace gp
 	template <typename SceneTagEnum, typename ContextObject>
 	class SceneManager;
 
+	// Add input and visual passthrough
+
 	template <typename SceneTagEnum, typename ContextObject>
 	class Scene
 	{
@@ -29,11 +31,13 @@ namespace gp
 
 		void pushScene(SceneTagEnum tag) { m_push = tag; }
 		void popScene() { m_pop = true; }
+		void setToOverlay() { m_isOverlay = true; };
 
 	private:
 
 		friend SceneManager<SceneTagEnum, ContextObject>;
 		std::optional<SceneTagEnum> m_push{};
 		bool m_pop{};
+		bool m_isOverlay{};
 	};
 }

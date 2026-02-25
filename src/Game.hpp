@@ -6,6 +6,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "SceneManager.hpp"
+#include "ResourceManager.hpp"
 
 namespace gp
 {
@@ -14,7 +15,11 @@ namespace gp
 	{
 	public:
 
-		Game() : m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Platformer") {};
+		Game() : m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game")
+		{
+			m_resources.loadTextures("textures");
+		};
+
 		virtual ~Game() = default;
 
 		void run()
@@ -78,6 +83,7 @@ namespace gp
 		static constexpr sf::Time k_maxAccumulated{ std::chrono::milliseconds(200) };
 		
 		ContextObject m_context;
+		ResourceManager m_resources;
 		sf::RenderWindow m_window;
 		SceneManager<SceneTagEnum, ContextObject> m_scenes;
 		Input m_input;
