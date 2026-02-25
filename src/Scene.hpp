@@ -2,7 +2,6 @@
 
 #include <optional>
 
-#include "GameContext.hpp"
 #include "Input.hpp"
 
 namespace sf
@@ -12,10 +11,10 @@ namespace sf
 
 namespace gp
 {
-	template <typename TagEnum>
+	template <typename SceneTagEnum, typename ContextObject>
 	class SceneManager;
 
-	template <typename TagEnum>
+	template <typename SceneTagEnum, typename ContextObject>
 	class Scene
 	{
 	public:
@@ -23,18 +22,18 @@ namespace gp
 		Scene() = default;
 		virtual ~Scene() = default;
 
-		virtual void update(GameContext& context, const Input& input) = 0;
-		virtual void draw(const GameContext& context, sf::RenderWindow& window) const = 0;
+		virtual void update(ContextObject& context, const Input& input) = 0;
+		virtual void draw(const ContextObject& context, sf::RenderWindow& window) const = 0;
 
 	protected:
 
-		void pushScene(TagEnum tag) { m_push = tag; }
+		void pushScene(SceneTagEnum tag) { m_push = tag; }
 		void popScene() { m_pop = true; }
 
 	private:
 
-		friend SceneManager<TagEnum>;
-		std::optional<TagEnum> m_push{};
+		friend SceneManager<SceneTagEnum, ContextObject>;
+		std::optional<SceneTagEnum> m_push{};
 		bool m_pop{};
 	};
 }

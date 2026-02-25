@@ -25,6 +25,8 @@ namespace gp
 
 		bool isReleased(sf::Mouse::Button button) const { return m_mouseReleased[static_cast<size_t>(button) + 1]; }
 
+		bool isAnyPressed() const { return m_mousePressed.any() || m_keyboardPressed.any(); }
+
 		bool isMouseInWindow() const { return m_mouseInWindow; }
 
 		sf::Vector2i getMousePosition() const { return m_mousePosition; }
