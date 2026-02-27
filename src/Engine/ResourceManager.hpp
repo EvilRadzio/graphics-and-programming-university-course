@@ -8,7 +8,7 @@
 
 #include <SFML/Graphics.hpp>
 
-namespace gp
+namespace Engine
 {
 	// Make like internal struct tha can be passed to everything
 
@@ -39,7 +39,7 @@ namespace gp
 
 		TextureHandle getTextureHandle(const std::string& texturePath) const
 		{
-			//here I'll return a missing texture texture generated on the fly if the texture is not loaded
+			// here I'll return a missing texture texture generated on the fly if the texture is not loaded
 			return m_textureHandles.at(texturePath);
 		}
 
@@ -50,20 +50,18 @@ namespace gp
 
 		void loadTextures(const std::string& directoryPath)
 		{
-			const std::string fullPath = k_basePath + directoryPath;
-
-			if (!std::filesystem::exists(fullPath))
+			if (!std::filesystem::exists(directoryPath))
 			{
 				return;
 			}
 
 			// maybe test this, dunno if it would work well honestly
 
-			for (const auto& entry : std::filesystem::recursive_directory_iterator(fullPath))
+			for (const auto& entry : std::filesystem::recursive_directory_iterator(directoryPath))
 			{
 				try
 				{
-					m_textures.push_back(sf::Texture(entry.path()));
+					m_textures.emplace_back(entry.path());
 					m_textureHandles.insert(std::pair{ entry.path().string(), TextureHandle(m_textures.size() - 1) });
 				}
 				catch (const sf::Exception& e) {}
@@ -71,8 +69,6 @@ namespace gp
 		}
 
 	private:
-
-		static constexpr const char* k_basePath = "resources/";
 
 		std::unordered_map<std::string, TextureHandle> m_textureHandles;
 		std::vector<sf::Texture> m_textures;

@@ -6,7 +6,7 @@
 
 #include "Input.hpp"
 
-namespace gp
+namespace Engine
 {
 	// Needs a slight rework + needs to display text
 	

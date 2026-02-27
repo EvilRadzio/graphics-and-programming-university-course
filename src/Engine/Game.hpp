@@ -8,16 +8,16 @@
 #include "SceneManager.hpp"
 #include "ResourceManager.hpp"
 
-namespace gp
+namespace Engine
 {
-	template <typename SceneTagEnum, typename ContextObject>
+	template <Internal I>
 	class Game
 	{
 	public:
 
 		Game() : m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game")
 		{
-			m_resources.loadTextures("textures");
+			m_resources.loadTextures("resources/textures");
 		};
 
 		virtual ~Game() = default;
@@ -49,14 +49,23 @@ namespace gp
 				{
 					m_accumulated -= k_fixedDt;
 
-					m_scenes.update(m_context, m_input);
+					UpdateApi updateApi{
+						m_input
+					};
+
+					m_scenes.update(m_context, updateApi);
 
 					m_input.newFrame();
 				}
 
 				m_window.clear(sf::Color::Black);
 
-				m_scenes.draw(m_context, m_window);
+				DrawApi drawApi{
+					m_window,
+					m_resources
+				};
+
+				m_scenes.draw(m_context, drawApi);
 
 				m_window.display();
 			}
@@ -64,16 +73,16 @@ namespace gp
 
 	protected:
 
-		void registerScene(SceneTagEnum tag, SceneManager<SceneTagEnum, ContextObject>::SceneFactory&& factoryFunction)
+		void registerScene(typename I::SceneId id, SceneManager<I>::SceneFactory&& factoryFunction)
 		{
-			m_scenes.registerScene(tag, std::move(factoryFunction));
+			m_scenes.registerScene(id, std::move(factoryFunction));
 		}
 
-		void setStartingScene(SceneTagEnum tag)
+		void setStartingScene(typename I::SceneId id)
 		{
 			assert(m_scenes.empty());
 
-			m_scenes.pushScene(tag);
+			m_scenes.pushScene(id);
 		}
 
 	private:
@@ -82,10 +91,10 @@ namespace gp
 		static constexpr sf::Time k_fixedDt = std::chrono::microseconds(1000000 / k_tps);
 		static constexpr sf::Time k_maxAccumulated{ std::chrono::milliseconds(200) };
 		
-		ContextObject m_context;
+		typename I::Context m_context;
 		ResourceManager m_resources;
 		sf::RenderWindow m_window;
-		SceneManager<SceneTagEnum, ContextObject> m_scenes;
+		SceneManager<I> m_scenes;
 		Input m_input;
 		sf::Clock m_clock;
 		sf::Time m_accumulated;

@@ -8,9 +8,9 @@
 
 #include "Scene.hpp"
 
-namespace gp
+namespace Engine
 {
-	template <typename SceneTagEnum, typename ContextObject>
+	template <Internal I>
 	class SceneManager
 	{
 	public:
@@ -18,18 +18,18 @@ namespace gp
 		SceneManager() = default;
 		~SceneManager() = default;
 
-		using SceneFactory = std::function<std::unique_ptr<Scene<SceneTagEnum, ContextObject>>()>;
+		using SceneFactory = std::function<std::unique_ptr<Scene<I>>()>;
 
-		void registerScene(SceneTagEnum tag, SceneFactory&& factoryFunction) { m_factories[tag] = std::move(factoryFunction); }
-		void pushScene(SceneTagEnum tag) { assert(m_factories.count(tag));  m_scenes.push_back(m_factories[tag]()); }
+		void registerScene(typename I::SceneId id, SceneFactory&& factoryFunction) { m_factories[id] = std::move(factoryFunction); }
+		void pushScene(typename I::SceneId id) { assert(m_factories.count(id));  m_scenes.push_back(m_factories[id]()); }
 		void popScene() { assert(!m_scenes.empty());  m_scenes.pop_back(); }
 		bool empty() { return m_scenes.empty(); }
 
-		void update(ContextObject& context, const Input& input)
+		void update(typename I::Context& context, UpdateApi& api)
 		{
 			if (m_scenes.back()->m_push)
 			{
-				SceneTagEnum tag = m_scenes.back()->m_push.value();
+				typename I::SceneId tag = m_scenes.back()->m_push.value();
 				m_scenes.back()->m_push = {};
 				pushScene(tag);
 			}
@@ -51,11 +51,22 @@ namespace gp
 
 			for (; i < m_scenes.size(); ++i)
 			{
-				m_scenes[i]->update(context, i == m_scenes.size() - 1 ? input : Input());
+				if (i == m_scenes.size() - 1)
+				{
+					m_scenes[i]->update(context, api);
+					continue;
+				}
+
+				Input dummyInput;
+				UpdateApi dummyApi{
+					dummyInput
+				};
+
+				m_scenes[i]->update(context, dummyApi);
 			}
 		}
 
-		void draw(const ContextObject& context, sf::RenderWindow& window) const
+		void draw(const typename I::Context& context, DrawApi& api) const
 		{
 			assert(!m_scenes.empty());
 
@@ -70,13 +81,13 @@ namespace gp
 			
 			for (; i < m_scenes.size(); ++i)
 			{
-				m_scenes[i]->draw(context, window);
+				m_scenes[i]->draw(context, api);
 			}
 		}
 
 	private:
 
-		std::unordered_map<SceneTagEnum, SceneFactory> m_factories;
-		std::vector<std::unique_ptr<Scene<SceneTagEnum, ContextObject>>> m_scenes;
+		std::unordered_map<typename I::SceneId, SceneFactory> m_factories;
+		std::vector<std::unique_ptr<Scene<I>>> m_scenes;
 	};
 }

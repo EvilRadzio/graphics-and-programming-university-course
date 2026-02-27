@@ -6,7 +6,7 @@
 
 #include <SFML/Window.hpp>
 
-namespace gp
+namespace Engine
 {
 	// Add bindings
 
