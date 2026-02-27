@@ -17,7 +17,7 @@ namespace Engine
 
 		Game() : m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game")
 		{
-			m_resources.loadTextures("resources/textures");
+			
 		};
 
 		virtual ~Game() = default;
@@ -73,17 +73,11 @@ namespace Engine
 
 	protected:
 
-		void registerScene(typename I::SceneId id, SceneManager<I>::SceneFactory&& factoryFunction)
-		{
-			m_scenes.registerScene(id, std::move(factoryFunction));
-		}
-
-		void setStartingScene(typename I::SceneId id)
-		{
-			assert(m_scenes.empty());
-
-			m_scenes.pushScene(id);
-		}
+		typename I::Context m_context;
+		ResourceManager m_resources;
+		sf::RenderWindow m_window;
+		SceneManager<I> m_scenes;
+		Input m_input;
 
 	private:
 
@@ -91,11 +85,6 @@ namespace Engine
 		static constexpr sf::Time k_fixedDt = std::chrono::microseconds(1000000 / k_tps);
 		static constexpr sf::Time k_maxAccumulated{ std::chrono::milliseconds(200) };
 		
-		typename I::Context m_context;
-		ResourceManager m_resources;
-		sf::RenderWindow m_window;
-		SceneManager<I> m_scenes;
-		Input m_input;
 		sf::Clock m_clock;
 		sf::Time m_accumulated;
 	};
