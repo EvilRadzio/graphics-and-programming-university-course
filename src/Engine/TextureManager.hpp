@@ -5,6 +5,7 @@
 #include <string>
 #include <assert.h>
 #include <filesystem>
+#include <iostream>
 
 #include <SFML/Graphics.hpp>
 
@@ -16,16 +17,23 @@ namespace Engine
 	{
 	public:
 
-		TextureManager() = default;
-		~TextureManager() = default;
+		TextureManager()
+		{
+			sf::Image errorTexture(sf::Vector2u(1, 1), sf::Color::Magenta);
+			m_textures.push_back(sf::Texture(errorTexture));
+		}
 
 		TextureHandle getHandle(const std::string& texturePath) const
 		{
-			// here I'll return a missing texture texture generated on the fly if the texture is not loaded
+			if (!m_textureHandles.count(texturePath))
+			{
+				return TextureHandle(0);
+			}
+			
 			return m_textureHandles.at(texturePath);
 		}
 
-		const sf::Texture& get(TextureHandle handle) const
+		const sf::Texture& getTexture(TextureHandle handle) const
 		{
 			return m_textures.at(handle.id);
 		}
@@ -41,10 +49,18 @@ namespace Engine
 
 			for (const auto& entry : std::filesystem::recursive_directory_iterator(directoryPath))
 			{
+				if (!entry.is_regular_file())
+				{
+					continue;
+				}
+
 				try
 				{
 					m_textures.emplace_back(entry.path());
-					m_textureHandles.insert(std::pair{ entry.path().string(), TextureHandle(m_textures.size() - 1) });
+					m_textureHandles.insert(std::pair{ 
+						std::filesystem::relative(entry.path(), directoryPath).replace_extension().string(),
+						TextureHandle(m_textures.size() - 1)
+					});
 				}
 				catch (const sf::Exception& e) {}
 			}

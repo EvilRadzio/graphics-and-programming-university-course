@@ -16,6 +16,9 @@ namespace Game
 			m_scenes.registerScene(Schema::SceneId::MainMenu, []() {return std::make_unique<Scenes::MainMenu>(); });
 			m_scenes.registerScene(Schema::SceneId::LevelEditor, []() {return std::make_unique<Scenes::LevelEditor>(); });
 			m_scenes.pushScene(Schema::SceneId::MainMenu);
+
+			Engine::Tile someTile(Engine::TileType::solid);
+			m_tileTextures.setTileTexture(m_tiles.add(someTile), "solid_block.png");
 		}
 	};
 }

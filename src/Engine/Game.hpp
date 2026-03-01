@@ -17,7 +17,9 @@ namespace Engine
 	{
 	public:
 
-		Game() : m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game")
+		Game() :
+			m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game"),
+			m_tileTextures(m_textures)
 		{
 			
 		};

@@ -1,9 +1,10 @@
 #pragma once
 
 #include <unordered_map>
+#include <string>
 
 #include "TileHandle.hpp"
-#include "TextureHandle.hpp"
+#include "TextureManager.hpp"
 
 // for now it's very ugly but works
 
@@ -13,12 +14,17 @@ namespace Engine
 	{
 	public:
 
-		TileTextureManager() = default;
+		TileTextureManager(const TextureManager& textureManager)
+			: m_textureManager(textureManager) {}
+
 		~TileTextureManager() = default;
 
-		void setTileTexture(const TileHandle tileHandle, const TextureHandle textureHandle)
+		void setTileTexture(const TileHandle tileHandle, const std::string& texturePath)
 		{
-			m_tileTextures.insert(std::pair{ tileHandle.id, textureHandle });
+			m_tileTextures.insert(std::pair{
+				tileHandle.id,
+				m_textureManager.getHandle(texturePath)
+			});
 		}
 
 		TextureHandle getTexture(const TileHandle tileHandle) const
@@ -29,5 +35,6 @@ namespace Engine
 	private:
 
 		std::unordered_map<size_t, TextureHandle> m_tileTextures;
+		const TextureManager& m_textureManager;
 	};
 }
