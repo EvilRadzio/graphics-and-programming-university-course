@@ -11,7 +11,7 @@ namespace Game
 
 		Game()
 		{
-			m_resources.loadTextures("resources/textures");
+			m_textures.loadAll("resources/textures");
 
 			m_scenes.registerScene(Schema::SceneId::MainMenu, []() {return std::make_unique<Scenes::MainMenu>(); });
 			m_scenes.registerScene(Schema::SceneId::LevelEditor, []() {return std::make_unique<Scenes::LevelEditor>(); });

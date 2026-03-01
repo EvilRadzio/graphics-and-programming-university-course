@@ -28,6 +28,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
 	SFML::Graphics
+	SFML::System
 	#SFML::Main
 )
 

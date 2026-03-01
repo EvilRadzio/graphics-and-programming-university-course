@@ -6,7 +6,9 @@
 #include <SFML/Graphics.hpp>
 
 #include "SceneManager.hpp"
-#include "ResourceManager.hpp"
+#include "TextureManager.hpp"
+#include "TileManager.hpp"
+#include "TileTextureManager.hpp"
 
 namespace Engine
 {
@@ -62,7 +64,7 @@ namespace Engine
 
 				DrawApi drawApi{
 					m_window,
-					m_resources
+					m_textures
 				};
 
 				m_scenes.draw(m_context, drawApi);
@@ -74,9 +76,11 @@ namespace Engine
 	protected:
 
 		typename I::Context m_context;
-		ResourceManager m_resources;
+		TextureManager m_textures;
 		sf::RenderWindow m_window;
 		SceneManager<I> m_scenes;
+		TileTextureManager m_tileTextures;
+		TileManager m_tiles;
 		Input m_input;
 
 	private:

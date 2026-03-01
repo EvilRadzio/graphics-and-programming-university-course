@@ -7,11 +7,11 @@ namespace sf
 
 namespace Engine
 {
-	class ResourceManager;
+	class TextureManager;
 
 	struct DrawApi
 	{
 		sf::RenderWindow& window;
-		const ResourceManager& resources;
+		const TextureManager& textures;
 	};
 }

@@ -8,47 +8,29 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "TextureHandle.hpp"
+
 namespace Engine
 {
-	// Make like internal struct tha can be passed to everything
-
-	class ResourceManager;
-
-	class TextureHandle
+	class TextureManager
 	{
 	public:
 
-		~TextureHandle() = default;
+		TextureManager() = default;
+		~TextureManager() = default;
 
-		size_t getId() { return id; }
-
-	private:
-
-		TextureHandle(size_t id) : id(id) {};
-
-		friend ResourceManager;
-		size_t id{};
-	};
-
-	class ResourceManager
-	{
-	public:
-
-		ResourceManager() = default;
-		~ResourceManager() = default;
-
-		TextureHandle getTextureHandle(const std::string& texturePath) const
+		TextureHandle getHandle(const std::string& texturePath) const
 		{
 			// here I'll return a missing texture texture generated on the fly if the texture is not loaded
 			return m_textureHandles.at(texturePath);
 		}
 
-		const sf::Texture& getTexture(TextureHandle handle) const
+		const sf::Texture& get(TextureHandle handle) const
 		{
 			return m_textures.at(handle.id);
 		}
 
-		void loadTextures(const std::string& directoryPath)
+		void loadAll(const std::string& directoryPath)
 		{
 			if (!std::filesystem::exists(directoryPath))
 			{
