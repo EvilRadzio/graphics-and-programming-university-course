@@ -24,7 +24,6 @@ namespace Engine
 	{
 	public:
 
-		Scene() = default;
 		virtual ~Scene() = default;
 
 		virtual void update(typename I::Context& context, UpdateApi& api) {};
@@ -34,7 +33,7 @@ namespace Engine
 
 		void pushScene(typename I::SceneId tag) { m_push = tag; }
 		void popScene() { m_pop = true; }
-		void setToOverlay() { m_isOverlay = true; };
+		void setOverlay(bool option) { m_isOverlay = option; };
 
 	private:
 
