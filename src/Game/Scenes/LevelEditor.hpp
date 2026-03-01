@@ -8,9 +8,6 @@ namespace Game::Scenes
 	{
 	public:
 
-		LevelEditor() = default;
-		~LevelEditor() = default;
-
 		void update(Schema::Context& context, Engine::UpdateApi& api) override;
 		void draw(const Schema::Context& context, Engine::DrawApi& api) const override;
 	};

@@ -33,6 +33,16 @@ namespace Engine
 			return m_textureHandles.at(texturePath);
 		}
 
+		const sf::Texture& getTexture(const std::string& path) const
+		{
+			if (!m_textureHandles.count(path))
+			{
+				return m_textures.at(0);
+			}
+
+			return m_textures.at(m_textureHandles.at(path).id);
+		}
+
 		const sf::Texture& getTexture(TextureHandle handle) const
 		{
 			return m_textures.at(handle.id);
@@ -57,8 +67,13 @@ namespace Engine
 				try
 				{
 					m_textures.emplace_back(entry.path());
+
+					std::string path = std::filesystem::relative(entry.path(), directoryPath).replace_extension().generic_string();
+
+					std::cout << "Loaded: " << path << std::endl;
+
 					m_textureHandles.insert(std::pair{ 
-						std::filesystem::relative(entry.path(), directoryPath).replace_extension().string(),
+						path,
 						TextureHandle(m_textures.size() - 1)
 					});
 				}

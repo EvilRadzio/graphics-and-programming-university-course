@@ -66,7 +66,11 @@ namespace Engine
 
 				DrawApi drawApi{
 					m_window,
-					m_textures
+					m_textures,
+					m_tiles,
+					m_tileTextures,
+					m_input,
+					m_font
 				};
 
 				m_scenes.draw(m_context, drawApi);
@@ -84,6 +88,7 @@ namespace Engine
 		TileTextureManager m_tileTextures;
 		TileManager m_tiles;
 		Input m_input;
+		sf::Font m_font;
 
 	private:
 
