@@ -20,10 +20,17 @@ namespace Game::Scenes
 		{
 			api.window.clear(sf::Color::Blue);
 
+			sf::Vector2f windowSize = static_cast<sf::Vector2f>(api.window.getSize());
+			sf::RectangleShape mikuShape(windowSize * 0.8f);
+			mikuShape.move(sf::Vector2f(windowSize.x / 10.0f, windowSize.y / 20.0f));
+			mikuShape.setTexture(&api.textures.getTexture("player"));
+
+			api.window.draw(mikuShape);
+
 			sf::Text text(api.font, "Click any button to continue..");
 			text.setCharacterSize(40);
 			text.setOrigin(static_cast<sf::Vector2f>(text.getLocalBounds().size) / 2.0f);
-			text.setPosition(static_cast<sf::Vector2f>(api.window.getSize()) / 2.0f);
+			text.setPosition(sf::Vector2f(windowSize.x / 2.0f, (windowSize.y / 10) * 9));
 
 			api.window.draw(text);
 		}
