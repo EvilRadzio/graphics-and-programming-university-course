@@ -19,18 +19,31 @@ namespace Game::Scenes
 			m_moves.push(empty);
 		}
 
-		void updateImgui(Schema::Context& context, Engine::UpdateApi& api) override
+		void updateGui(Schema::Context& context, Engine::Apis::UpdateGui& api) override
 		{
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
 
+			ImGui::SetNextWindowPos(viewport->Pos);
+			ImGui::SetNextWindowSize(viewport->Size);
+
+			if (ImGui::Begin("##Menu", nullptr,
+				ImGuiWindowFlags_NoDecoration |
+				ImGuiWindowFlags_NoMove |
+				ImGuiWindowFlags_NoResize |
+				ImGuiWindowFlags_NoSavedSettings |
+				ImGuiWindowFlags_NoBackground))
+			{
+				if (ImGui::Button("Go back"))
+				{
+					popScene();
+				}
+			}
+			ImGui::End();
 		}
 
-		void update(Schema::Context& context, Engine::UpdateApi& api) override
+		void update(Schema::Context& context, Engine::Apis::Update& api) override
 		{
-			if (api.input.isPressed(sf::Keyboard::Scancode::Escape))
-			{
-				popScene();
-			}
-			if (m_winner != T::E)
+			if (m_timer > 0)
 			{
 				--m_timer;
 
@@ -55,7 +68,7 @@ namespace Game::Scenes
 			for (int32_t y = 0; y < 3; ++y) for (int32_t x = 0; x < 3; ++x)
 			{
 				sf::Rect<int32_t> rect(
-					k_mapStart + sf::Vector2i(x * k_tileSize.x, y * k_tileSize.y),
+					k_mapStart + sf::Vector2i(x * (k_tileSize.x + k_spacing), y * (k_tileSize.y + k_spacing)),
 					k_tileSize
 				);
 
@@ -81,22 +94,28 @@ namespace Game::Scenes
 				m_timer = k_ticksBeforeRefresh;
 				return;
 			}
+
+			if (std::none_of(m_moves.top().begin(), m_moves.top().end(), [](T t) {return t == T::E;}))
+			{
+				m_timer = k_ticksBeforeRefresh;
+			}
 		}
 
-		void draw(const Schema::Context& context, Engine::DrawApi& api) const override
+		void draw(const Schema::Context& context, Engine::Apis::Draw& api) const override
 		{
-			sf::RectangleShape board(static_cast<sf::Vector2f>(k_tileSize * 3));
-			board.setPosition(static_cast<sf::Vector2f>(k_mapStart));
-			board.setFillColor(sf::Color(0x333333ff));
-
-			api.window.draw(board);
-
 			for (int32_t y = 0; y < 3; ++y) for (int32_t x = 0; x < 3; ++x)
 			{
-				if (m_moves.top()[y * 3 + x] == T::E) continue;
-
 				sf::RectangleShape rect(static_cast<sf::Vector2f>(k_tileSize));
-				rect.setPosition(static_cast<sf::Vector2f>(k_mapStart + sf::Vector2i(x * k_tileSize.x, y * k_tileSize.y)));
+				rect.setPosition(static_cast<sf::Vector2f>(
+					k_mapStart + sf::Vector2i(x * (k_tileSize.x + k_spacing), y * (k_tileSize.y + k_spacing)
+				)));
+				rect.setFillColor(sf::Color(0x222222ff));
+
+				api.window.draw(rect);
+
+				rect.setFillColor(sf::Color::White);
+
+				if (m_moves.top()[y * 3 + x] == T::E) continue;
 
 				switch (m_moves.top()[y * 3 + x])
 				{
@@ -127,9 +146,10 @@ namespace Game::Scenes
 
 	private:
 
-		constexpr static sf::Vector2i k_mapStart{ 100, 100 };
+		constexpr static sf::Vector2i k_mapStart{ 190, 190 };
 		constexpr static sf::Vector2i k_tileSize{ 100, 100 };
 		constexpr static int32_t k_ticksBeforeRefresh{ 120 };
+		constexpr static int32_t k_spacing{ 20 };
 		constexpr static std::array<sf::Vector3i, 8> k_winningCombinations{
 			sf::Vector3i(0, 1, 2),
 			sf::Vector3i(3, 4, 5),

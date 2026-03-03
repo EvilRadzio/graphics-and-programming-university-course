@@ -20,10 +20,11 @@ namespace Engine
 	public:
 
 		Game() :
-			m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game"),
+			m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game", sf::Style::Close),
 			m_tileTextures(m_textures)
 		{
 			ImGui::SFML::Init(m_window);
+			ImGui::GetIO().FontGlobalScale = 2.0f;
 		};
 
 		virtual ~Game()
@@ -55,16 +56,14 @@ namespace Engine
 
 				sf::Time realDt = m_clock.restart();
 
+				Apis::UpdateGui updateGuiApi
 				{
-					UpdateApi updateImguiApi{
-						m_input,
-						realDt
-					};
+					m_window
+				};
 
-					ImGui::SFML::Update(m_window, realDt);
+				ImGui::SFML::Update(m_window, realDt);
 
-					m_scenes.updateImgui(m_context, updateImguiApi);
-				}
+				m_scenes.updateGui(m_context, updateGuiApi);
 
 				m_accumulated += realDt;
 				m_accumulated = std::min(m_accumulated, k_maxAccumulated);
@@ -73,7 +72,7 @@ namespace Engine
 				{
 					m_accumulated -= k_fixedDt;
 
-					UpdateApi updateApi{
+					Apis::Update updateApi{
 						m_input,
 						k_fixedDt
 					};
@@ -85,7 +84,7 @@ namespace Engine
 
 				m_window.clear(sf::Color::Black);
 
-				DrawApi drawApi{
+				Apis::Draw drawApi{
 					m_window,
 					m_textures,
 					m_tiles,

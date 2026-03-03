@@ -5,8 +5,11 @@
 namespace Engine
 {
 	class Input;
+}
 
-	struct UpdateApi
+namespace Engine::Apis
+{
+	struct Update
 	{
 		const Input& input;
 		const sf::Time dt;

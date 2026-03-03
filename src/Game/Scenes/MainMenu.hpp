@@ -8,48 +8,49 @@ namespace Game::Scenes
 	{
 	public:
 
-		void updateImgui(Schema::Context& context, Engine::UpdateApi& api) override
+		void updateGui(Schema::Context& context, Engine::Apis::UpdateGui& api) override
 		{
-			if (ImGui::Begin("Miku settings!"))
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+			ImGui::SetNextWindowPos(viewport->Pos);
+			ImGui::SetNextWindowSize(viewport->Size);
+
+			if (ImGui::Begin("##Menu", nullptr,
+				ImGuiWindowFlags_NoDecoration |
+				ImGuiWindowFlags_NoMove |
+				ImGuiWindowFlags_NoResize |
+				ImGuiWindowFlags_NoSavedSettings |
+				ImGuiWindowFlags_NoBackground))
 			{
-				ImGui::Checkbox("Visible miku!!!", &m_showMiku);
+				if (ImGui::Button("Play TicTacToe"))
+				{
+					pushScene(Schema::SceneId::TicTacToe);
+				}
+				if (ImGui::Button("Tilemap Editor"))
+				{
+					pushScene(Schema::SceneId::LevelEditor);
+				}
+				if (ImGui::Button("Exit"))
+				{
+					api.window.close();
+				}
 			}
 			ImGui::End();
 		}
 
-		void update(Schema::Context& context, Engine::UpdateApi& api) override
+		void update(Schema::Context& context, Engine::Apis::Update& api) override
 		{
-			if (api.input.isPressed(sf::Keyboard::Scancode::Space))
-			{
-				pushScene(Schema::SceneId::TicTacToe);
-			}
+
 		}
 
-		void draw(const Schema::Context& context, Engine::DrawApi& api) const override
+		void draw(const Schema::Context& context, Engine::Apis::Draw& api) const override
 		{
-			api.window.clear(sf::Color::Blue);
+			api.window.clear(sf::Color(0x222222ff));
 
-			sf::Vector2f windowSize = static_cast<sf::Vector2f>(api.window.getSize());
-			
-			if (m_showMiku)
-			{
-				sf::RectangleShape mikuShape(windowSize * 0.8f);
-				mikuShape.move(sf::Vector2f(windowSize.x / 10.0f, windowSize.y / 20.0f));
-				mikuShape.setTexture(&api.textures.getTexture("player"));
+			sf::RectangleShape mikuShape(static_cast<sf::Vector2f>(api.window.getSize()));
+			mikuShape.setTexture(&api.textures.getTexture("player"));
 
-				api.window.draw(mikuShape);
-			}
-
-			sf::Text text(api.font, "Click space to continue..");
-			text.setCharacterSize(40);
-			text.setOrigin(static_cast<sf::Vector2f>(text.getLocalBounds().size) / 2.0f);
-			text.setPosition(sf::Vector2f(windowSize.x / 2.0f, (windowSize.y / 10) * 9));
-
-			api.window.draw(text);
+			api.window.draw(mikuShape);
 		}
-
-	private:
-
-		bool m_showMiku{ true };
 	};
 }

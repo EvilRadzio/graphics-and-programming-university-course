@@ -2,7 +2,7 @@
 
 namespace sf
 {
-	class RenderWindow;
+	class RenderTarget;
 	class Font;
 }
 
@@ -12,10 +12,13 @@ namespace Engine
 	class TileManager;
 	class TileTextureManager;
 	class Input;
+}
 
-	struct DrawApi
+namespace Engine::Apis
+{
+	struct Draw
 	{
-		sf::RenderWindow& window;
+		sf::RenderTarget& window;
 		const TextureManager& textures;
 		const TileManager& tiles;
 		const TileTextureManager& tileTextures;

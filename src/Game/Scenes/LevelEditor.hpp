@@ -8,8 +8,8 @@ namespace Game::Scenes
 	{
 	public:
 
-		void updateImgui(Schema::Context& context, Engine::UpdateApi& api) override;
-		void update(Schema::Context& context, Engine::UpdateApi& api) override;
-		void draw(const Schema::Context& context, Engine::DrawApi& api) const override;
+		void updateGui(Schema::Context& context, Engine::Apis::UpdateGui& api) override;
+		void update(Schema::Context& context, Engine::Apis::Update& api) override;
+		void draw(const Schema::Context& context, Engine::Apis::Draw& api) const override;
 	};
 }

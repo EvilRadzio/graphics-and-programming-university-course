@@ -4,8 +4,7 @@
 
 #include "Internal.hpp"
 #include "Input.hpp"
-#include "UpdateApi.hpp"
-#include "DrawApi.hpp"
+#include "Apis/Apis.hpp"
 
 namespace sf
 {
@@ -26,21 +25,21 @@ namespace Engine
 
 		virtual ~Scene() = default;
 
-		virtual void updateImgui(typename I::Context& context, UpdateApi& api) = 0;
-		virtual void update(typename I::Context& context, UpdateApi& api) = 0;
-		virtual void draw(const typename I::Context& context, DrawApi& api) const = 0;
+		virtual void updateGui(typename I::Context& context, Apis::UpdateGui& api) = 0;
+		virtual void update(typename I::Context& context, Apis::Update& api) = 0;
+		virtual void draw(const typename I::Context& context, Apis::Draw& api) const = 0;
 
 	protected:
 
 		void pushScene(typename I::SceneId tag) { m_push = tag; }
 		void popScene() { m_pop = true; }
-		void setOverlay(bool option) { m_isOverlay = option; };
+
+		// Implement pop untill, replace and pop untill replace methods
 
 	private:
 
 		friend SceneManager<I>;
 		std::optional<typename I::SceneId> m_push{};
 		bool m_pop{};
-		bool m_isOverlay{};
 	};
 }
