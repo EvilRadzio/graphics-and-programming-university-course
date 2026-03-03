@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SFML/System.hpp>
+
 namespace Engine
 {
 	class Input;
@@ -7,5 +9,6 @@ namespace Engine
 	struct UpdateApi
 	{
 		const Input& input;
+		const sf::Time dt;
 	};
 }

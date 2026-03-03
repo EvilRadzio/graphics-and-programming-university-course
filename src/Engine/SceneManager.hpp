@@ -25,6 +25,13 @@ namespace Engine
 		void popScene() { assert(!m_scenes.empty());  m_scenes.pop_back(); }
 		bool empty() { return m_scenes.empty(); }
 
+		void updateImgui(typename I::Context& context, UpdateApi& api)
+		{
+			assert(!m_scenes.empty());
+
+			m_scenes.back()->updateImgui(context, api);
+		}
+
 		void update(typename I::Context& context, UpdateApi& api)
 		{
 			if (m_scenes.back()->m_push)

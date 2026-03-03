@@ -1,5 +1,10 @@
 #include "LevelEditor.hpp"
 
+void Game::Scenes::LevelEditor::updateImgui(Schema::Context& context, Engine::UpdateApi& api)
+{
+
+}
+
 void Game::Scenes::LevelEditor::update(Schema::Context& context, Engine::UpdateApi& api)
 {
 	if (api.input.isPressed(sf::Keyboard::Scan::Escape))

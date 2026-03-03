@@ -4,6 +4,8 @@
 #include <algorithm>
 
 #include <SFML/Graphics.hpp>
+#include <imgui-SFML.h>
+#include <imgui.h>
 
 #include "SceneManager.hpp"
 #include "TextureManager.hpp"
@@ -21,10 +23,13 @@ namespace Engine
 			m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game"),
 			m_tileTextures(m_textures)
 		{
-			
+			ImGui::SFML::Init(m_window);
 		};
 
-		virtual ~Game() = default;
+		virtual ~Game()
+		{
+			ImGui::SFML::Shutdown();
+		}
 
 		void run()
 		{
@@ -40,13 +45,28 @@ namespace Engine
 				{
 					m_input.readEvent(*event);
 
+					ImGui::SFML::ProcessEvent(m_window, *event);
+
 					if (event->is<sf::Event::Closed>())
 					{
 						m_window.close();
 					}
 				}
 
-				m_accumulated += m_clock.restart();
+				sf::Time realDt = m_clock.restart();
+
+				{
+					UpdateApi updateImguiApi{
+						m_input,
+						realDt
+					};
+
+					ImGui::SFML::Update(m_window, realDt);
+
+					m_scenes.updateImgui(m_context, updateImguiApi);
+				}
+
+				m_accumulated += realDt;
 				m_accumulated = std::min(m_accumulated, k_maxAccumulated);
 
 				while (m_accumulated >= k_fixedDt)
@@ -54,7 +74,8 @@ namespace Engine
 					m_accumulated -= k_fixedDt;
 
 					UpdateApi updateApi{
-						m_input
+						m_input,
+						k_fixedDt
 					};
 
 					m_scenes.update(m_context, updateApi);
@@ -74,6 +95,8 @@ namespace Engine
 				};
 
 				m_scenes.draw(m_context, drawApi);
+
+				ImGui::SFML::Render(m_window);
 
 				m_window.display();
 			}

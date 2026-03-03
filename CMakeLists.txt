@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(Platformer)
+project(Platformer VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,6 +16,27 @@ FetchContent_Declare(SFML
 )
 FetchContent_MakeAvailable(SFML)
 
+FetchContent_Declare(imgui
+	GIT_REPOSITORY https://github.com/ocornut/imgui.git
+	GIT_TAG v1.91.1
+	GIT_SHALLOW ON
+	EXCLUDE_FROM_ALL
+	SYSTEM
+)
+FetchContent_MakeAvailable(imgui)
+
+set(IMGUI_DIR "${imgui_SOURCE_DIR}" CACHE PATH "imgui top-level directory" FORCE)
+set(IMGUI_SFML_FIND_SFML OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(imgui_sfml
+	GIT_REPOSITORY https://github.com/SFML/imgui-sfml.git
+	GIT_TAG v3.0
+	GIT_SHALLOW ON
+	EXCLUDE_FROM_ALL
+	SYSTEM
+)
+FetchContent_MakeAvailable(imgui_sfml)
+
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES}
@@ -29,6 +50,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
 	SFML::Graphics
 	SFML::System
+	ImGui-SFML::ImGui-SFML
 	#SFML::Main
 )
 

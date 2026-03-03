@@ -19,6 +19,11 @@ namespace Game::Scenes
 			m_moves.push(empty);
 		}
 
+		void updateImgui(Schema::Context& context, Engine::UpdateApi& api) override
+		{
+
+		}
+
 		void update(Schema::Context& context, Engine::UpdateApi& api) override
 		{
 			if (api.input.isPressed(sf::Keyboard::Scancode::Escape))

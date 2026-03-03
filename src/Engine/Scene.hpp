@@ -26,8 +26,9 @@ namespace Engine
 
 		virtual ~Scene() = default;
 
-		virtual void update(typename I::Context& context, UpdateApi& api) {};
-		virtual void draw(const typename I::Context& context, DrawApi& api) const {};
+		virtual void updateImgui(typename I::Context& context, UpdateApi& api) = 0;
+		virtual void update(typename I::Context& context, UpdateApi& api) = 0;
+		virtual void draw(const typename I::Context& context, DrawApi& api) const = 0;
 
 	protected:
 
