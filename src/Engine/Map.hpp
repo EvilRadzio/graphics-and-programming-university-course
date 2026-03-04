@@ -10,17 +10,24 @@
 
 namespace Engine
 {
-	class TileMap
+	class Map
 	{
 	public:
 
-		TileMap(const TileManager& tileManager, size_t width, size_t height) :
+		Map(const TileManager& tileManager, size_t width, size_t height) :
 			m_tiles(width* height, tileManager.getEmptyHandle()),
 			m_tileManager(tileManager),
 			m_width(width),
 			m_height(height) {}
 
-		const Tile& at(sf::Vector2u position)
+		TileHandle atHandle(sf::Vector2u position)
+		{
+			assert(position.x <= m_width && position.y <= m_height);
+
+			return m_tiles[position.y * m_width + position.x];
+		}
+
+		const Tile& atTile(sf::Vector2u position)
 		{
 			assert(position.x <= m_width && position.y <= m_height);
 
