@@ -58,7 +58,8 @@ namespace Engine
 
 				Apis::UpdateGui updateGuiApi
 				{
-					m_window
+					m_window,
+					m_tiles
 				};
 
 				ImGui::SFML::Update(m_window, realDt);
