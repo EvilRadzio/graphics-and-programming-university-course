@@ -13,5 +13,5 @@ namespace Game::Schema
 		using SceneId = Schema::SceneId;
 	};
 
-	using Scene = Engine::Scene<Internal>;
+	using Scene = Engine::Scenes::Scene<Internal>;
 }

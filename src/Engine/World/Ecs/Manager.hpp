@@ -7,10 +7,10 @@
 #include "Engine/DataStructures/SparseSet.hpp"
 #include "Entity.hpp"
 
-namespace Engine::Ecs
+namespace Engine::World::Ecs
 {
 	template <typename ... Components>
-	class EntityManager
+	class Manager
 	{
 	private:
 
@@ -24,7 +24,7 @@ namespace Engine::Ecs
 		{
 		public:
 
-			View(EntityManager* manager)
+			View(Manager* manager)
 				: m_manager(manager) {
 			}
 
@@ -32,7 +32,7 @@ namespace Engine::Ecs
 			{
 			public:
 
-				Iterator(EntityManager* manager, ComponentSet<T>::Iterator setIterator)
+				Iterator(Manager* manager, ComponentSet<T>::Iterator setIterator)
 					: m_manager(manager), m_iterator(setIterator) {
 				}
 
@@ -54,7 +54,7 @@ namespace Engine::Ecs
 
 			private:
 
-				EntityManager* m_manager;
+				Manager* m_manager;
 				ComponentSet<T>::Iterator m_iterator;
 			};
 
@@ -70,12 +70,12 @@ namespace Engine::Ecs
 
 		private:
 
-			EntityManager* m_manager;
+			Manager* m_manager;
 		};
 
 	public:
 
-		EntityManager() : m_generations(k_maxEntities, 0)
+		Manager() : m_generations(k_maxEntities, 0)
 		{
 			m_freelist.reserve(k_maxEntities);
 			for (int32_t id = k_maxEntities - 1; id >= 0; --id)

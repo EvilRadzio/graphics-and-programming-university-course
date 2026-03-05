@@ -1,9 +1,9 @@
 #pragma once
 
-namespace Engine::Ecs
+namespace Engine::World::Ecs
 {
 	template <typename ...>
-	class EntityManager;
+	class Manager;
 
 	class Entity
 	{
@@ -13,6 +13,6 @@ namespace Engine::Ecs
 		Entity(size_t id, size_t generation) : id(id), generation(generation) {}
 
 		template <typename ...>
-		friend class EntityManager;
+		friend class Manager;
 	};
 }

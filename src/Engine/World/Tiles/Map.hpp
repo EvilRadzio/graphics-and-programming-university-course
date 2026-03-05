@@ -6,21 +6,21 @@
 
 #include <SFML/System.hpp>
 
-#include "TileManager.hpp"
+#include "Manager.hpp"
 
-namespace Engine
+namespace Engine::Tiles
 {
 	class Map
 	{
 	public:
 
-		Map(const TileManager& tileManager, size_t width, size_t height) :
+		Map(const Manager& tileManager, size_t width, size_t height) :
 			m_tiles(width* height, tileManager.getEmptyHandle()),
 			m_tileManager(tileManager),
 			m_width(width),
 			m_height(height) {}
 
-		TileHandle atHandle(sf::Vector2u position)
+		Handle atHandle(sf::Vector2u position)
 		{
 			assert(position.x <= m_width && position.y <= m_height);
 
@@ -34,7 +34,7 @@ namespace Engine
 			return m_tileManager.get(m_tiles[position.y * m_width + position.x]);
 		}
 
-		void set(sf::Vector2u position, TileHandle tileHandle)
+		void set(sf::Vector2u position, Handle tileHandle)
 		{
 			assert(position.x <= m_width && position.y <= m_height);
 
@@ -43,8 +43,8 @@ namespace Engine
 
 	private:
 
-		std::vector<TileHandle> m_tiles;
-		const TileManager& m_tileManager;
+		std::vector<Handle> m_tiles;
+		const Manager& m_tileManager;
 		size_t m_width;
 		size_t m_height;
 	};

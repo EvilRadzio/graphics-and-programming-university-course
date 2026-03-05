@@ -2,16 +2,16 @@
 
 #include <SFML/System.hpp>
 
-namespace Engine
+namespace sf
 {
-	class Input;
+	class Window;
 }
 
 namespace Engine::Apis
 {
 	struct Update
 	{
-		const Input& input;
+		const sf::Window& window;
 		const sf::Time dt;
 	};
 }

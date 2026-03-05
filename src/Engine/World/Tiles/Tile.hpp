@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-namespace Engine
+namespace Engine::Tiles
 {
 	enum class TileType : uint8_t
 	{

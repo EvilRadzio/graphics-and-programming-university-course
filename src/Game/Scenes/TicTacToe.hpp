@@ -13,7 +13,7 @@ namespace Game::Scenes
 
 		enum class T : uint8_t { E, X, O };
 
-		TicTacToe()
+		TicTacToe(Engine::Apis::Scene api) : Scene(api)
 		{
 			std::array<T, 9> empty{ T::E, T::E, T::E, T::E, T::E, T::E, T::E, T::E, T::E };
 			m_moves.push(empty);
@@ -57,13 +57,13 @@ namespace Game::Scenes
 
 				return;
 			}
-			if (api.input.isPressed(sf::Mouse::Button::Right) &&
+			if (sceneApi.input.isPressed(sf::Mouse::Button::Right) &&
 				m_moves.size() > 1)
 			{
 				m_moves.pop();
 			}
 
-			sf::Vector2i mousePosition = api.input.getMousePosition();
+			sf::Vector2i mousePosition = sceneApi.input.getMousePosition();
 
 			for (int32_t y = 0; y < 3; ++y) for (int32_t x = 0; x < 3; ++x)
 			{
@@ -73,7 +73,7 @@ namespace Game::Scenes
 				);
 
 				if (rect.contains(mousePosition) &&
-					api.input.isPressed(sf::Mouse::Button::Left) &&
+					sceneApi.input.isPressed(sf::Mouse::Button::Left) &&
 					m_moves.top()[y * 3 + x] == T::E)
 				{
 					m_moves.push(m_moves.top());

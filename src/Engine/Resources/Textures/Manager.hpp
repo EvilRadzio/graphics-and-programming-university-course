@@ -9,25 +9,25 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "TextureHandle.hpp"
+#include "Handle.hpp"
 
-namespace Engine
+namespace Engine::Resources::Textures
 {
-	class TextureManager
+	class Manager
 	{
 	public:
 
-		TextureManager()
+		Manager()
 		{
 			sf::Image errorTexture(sf::Vector2u(1, 1), sf::Color::Magenta);
 			m_textures.push_back(sf::Texture(errorTexture));
 		}
 
-		TextureHandle getHandle(const std::string& texturePath) const
+		Handle getHandle(const std::string& texturePath) const
 		{
 			if (!m_textureHandles.count(texturePath))
 			{
-				return TextureHandle(0);
+				return Handle(0);
 			}
 			
 			return m_textureHandles.at(texturePath);
@@ -43,7 +43,7 @@ namespace Engine
 			return m_textures.at(m_textureHandles.at(path).id);
 		}
 
-		const sf::Texture& getTexture(TextureHandle handle) const
+		const sf::Texture& getTexture(Handle handle) const
 		{
 			return m_textures.at(handle.id);
 		}
@@ -76,14 +76,14 @@ namespace Engine
 
 				m_textureHandles.insert(std::pair{ 
 					path,
-					TextureHandle(m_textures.size() - 1)
+					Handle(m_textures.size() - 1)
 				});
 			}
 		}
 
 	private:
 
-		std::unordered_map<std::string, TextureHandle> m_textureHandles;
+		std::unordered_map<std::string, Handle> m_textureHandles;
 		std::vector<sf::Texture> m_textures;
 	};
 }

@@ -7,10 +7,10 @@
 #include <imgui-SFML.h>
 #include <imgui.h>
 
-#include "SceneManager.hpp"
-#include "TextureManager.hpp"
-#include "TileManager.hpp"
-#include "TileTextureManager.hpp"
+#include "Engine/Scenes/Scenes.hpp"
+#include "Engine/Resources/Textures/Textures.hpp"
+#include "Engine/World/World.hpp"
+#include "Input/Input.hpp"
 
 namespace Engine
 {
@@ -40,7 +40,7 @@ namespace Engine
 
 			while (m_window.isOpen())
 			{
-				m_input.newFrame();
+				m_input.newTick();
 
 				while (const auto event = m_window.pollEvent())
 				{
@@ -58,8 +58,6 @@ namespace Engine
 
 				Apis::UpdateGui updateGuiApi
 				{
-					m_window,
-					m_tiles
 				};
 
 				ImGui::SFML::Update(m_window, realDt);
@@ -74,13 +72,13 @@ namespace Engine
 					m_accumulated -= k_fixedDt;
 
 					Apis::Update updateApi{
-						m_input,
+						m_window,
 						k_fixedDt
 					};
 
 					m_scenes.update(m_context, updateApi);
 
-					m_input.newFrame();
+					m_input.newTick();
 				}
 
 				m_window.clear(sf::Color::Black);
@@ -90,7 +88,6 @@ namespace Engine
 					m_textures,
 					m_tiles,
 					m_tileTextures,
-					m_input,
 					m_font
 				};
 
@@ -104,13 +101,21 @@ namespace Engine
 
 	protected:
 
+		Apis::Scene buildSceneApi()
+		{
+			return Apis::Scene{
+				m_input,
+				m_tiles
+			};
+		}
+
 		typename I::Context m_context;
-		TextureManager m_textures;
+		Resources::Textures::Manager m_textures;
 		sf::RenderWindow m_window;
-		SceneManager<I> m_scenes;
-		TileTextureManager m_tileTextures;
-		TileManager m_tiles;
-		Input m_input;
+		Scenes::Manager<I> m_scenes;
+		World::Tiles::TextureManager m_tileTextures;
+		World::Tiles::Manager m_tiles;
+		Input::Raw m_input;
 		sf::Font m_font;
 
 	private:

@@ -3,36 +3,36 @@
 #include <vector>
 #include <utility>
 
-#include "TileHandle.hpp"
+#include "Handle.hpp"
 #include "Tile.hpp"
 
-namespace Engine
+namespace Engine::Tiles
 {
-	class TileManager
+	class Manager
 	{
 	public:
 
-		TileManager()
+		Manager()
 		{
 			m_tiles.push_back(Tile{});
 		}
 
-		~TileManager() = default;
+		~Manager() = default;
 
-		TileHandle add(Tile tile)
+		Handle add(Tile tile)
 		{
 			m_tiles.push_back(tile);
-			return TileHandle{m_tiles.size() - 1};
+			return Handle{m_tiles.size() - 1};
 		}
 
-		const Tile& get(TileHandle handle) const
+		const Tile& get(Handle handle) const
 		{
 			return m_tiles[handle.id];
 		}
 
-		TileHandle getEmptyHandle() const
+		Handle getEmptyHandle() const
 		{
-			return TileHandle(0);
+			return Handle(0);
 		}
 
 		class Iterator
@@ -45,9 +45,9 @@ namespace Engine
 				return *this;
 			}
 
-			std::pair<TileHandle, const Tile&> operator*()
+			std::pair<Handle, const Tile&> operator*()
 			{
-				return std::pair<TileHandle, const Tile&>{TileHandle(m_current), m_parent->m_tiles[m_current]};
+				return std::pair<Handle, const Tile&>{Handle(m_current), m_parent->m_tiles[m_current]};
 			}
 
 			bool operator!=(const Iterator& other) const
@@ -57,12 +57,12 @@ namespace Engine
 
 		private:
 
-			friend TileManager;
+			friend Manager;
 
-			Iterator(const TileManager* parent, const size_t current)
+			Iterator(const Manager* parent, const size_t current)
 				: m_parent(parent), m_current(current) {}
 
-			const TileManager* m_parent;
+			const Manager* m_parent;
 			size_t m_current;
 		};
 

@@ -6,17 +6,16 @@
 
 #include <SFML/Window.hpp>
 
-namespace Engine
+namespace Engine::Input
 {
-	// Add bindings
+	// Inside of this class the keayboard input scancodes are stored as scancode + 1
+	// The reason for that is SFML using -1 to represent an unknown key
+	// Maybe this kind of input should just be ignored, I'll think about it
 
-	class Input
+	class Raw
 	{
 	public:
-
-		Input() = default;
-		~Input() = default;
-
+		
 		bool isHeld(sf::Keyboard::Scan scan) const { return m_keyboardHeld[static_cast<size_t>(scan) + 1]; }
 		bool isPressed(sf::Keyboard::Scan scan) const { return m_keyboardPressed[static_cast<size_t>(scan) + 1]; }
 		bool isReleased(sf::Keyboard::Scan scan) const { return m_keyboardReleased[static_cast<size_t>(scan) + 1]; }
@@ -62,39 +61,48 @@ namespace Engine
 			if (e.is<sf::Event::KeyPressed>())
 			{
 				const auto scan = e.getIf<sf::Event::KeyPressed>();
-				registerPress(scan);
+
+				m_keyboardPressed.set(static_cast<size_t>(scan->scancode) + 1, true);
+				m_keyboardHeld.set(static_cast<size_t>(scan->scancode) + 1, true);
 			}
 			else if (e.is<sf::Event::KeyReleased>())
 			{
 				const auto scan = e.getIf<sf::Event::KeyReleased>();
-				registerRelease(scan);
+
+				m_keyboardReleased.set(static_cast<size_t>(scan->scancode) + 1, true);
+				m_keyboardHeld.set(static_cast<size_t>(scan->scancode) + 1, false);
 			}
 			else if (e.is<sf::Event::MouseButtonPressed>())
 			{
 				const auto button = e.getIf<sf::Event::MouseButtonPressed>();
-				registerPress(button);
+
+				m_mousePressed.set(static_cast<size_t>(button->button), true);
+				m_mouseHeld.set(static_cast<size_t>(button->button), true);
 			}
 			else if (e.is<sf::Event::MouseButtonReleased>())
 			{
 				const auto button = e.getIf<sf::Event::MouseButtonReleased>();
-				registerRelease(button);
+
+				m_mouseReleased.set(static_cast<size_t>(button->button), true);
+				m_mouseHeld.set(static_cast<size_t>(button->button), false);
 			}
 			else if (e.is<sf::Event::MouseMoved>())
 			{
 				const auto move = e.getIf<sf::Event::MouseMoved>();
-				registerMove(move);
+
+				m_mousePosition = move->position;
 			}
 			else if (e.is<sf::Event::MouseEntered>())
 			{
-				registerMouseInWindow(true);
+				m_mouseInWindow = true;
 			}
 			else if (e.is<sf::Event::MouseLeft>())
 			{
-				registerMouseInWindow(false);
+				m_mouseInWindow = false;
 			}
 		}
 
-		void newFrame()
+		void newTick()
 		{
 			m_keyboardPressed.reset();
 			m_keyboardReleased.reset();
@@ -105,40 +113,6 @@ namespace Engine
 
 	private:
 
-		void registerMove(const sf::Event::MouseMoved* const move)
-		{
-			m_mousePosition = move->position;
-		}
-
-		void registerMouseInWindow(bool present)
-		{
-			m_mouseInWindow = present;
-		}
-
-		void registerPress(const sf::Event::KeyPressed* const scan)
-		{
-			m_keyboardPressed.set(static_cast<size_t>(scan->scancode) + 1, true);
-			m_keyboardHeld.set(static_cast<size_t>(scan->scancode) + 1, true);
-		}
-
-		void registerRelease(const sf::Event::KeyReleased* const scan)
-		{
-			m_keyboardReleased.set(static_cast<size_t>(scan->scancode) + 1, true);
-			m_keyboardHeld.set(static_cast<size_t>(scan->scancode) + 1, false);
-		}
-
-		void registerPress(const sf::Event::MouseButtonPressed* const button)
-		{
-			m_mousePressed.set(static_cast<size_t>(button->button), true);
-			m_mouseHeld.set(static_cast<size_t>(button->button), true);
-		}
-
-		void registerRelease(const sf::Event::MouseButtonReleased* const button)
-		{
-			m_mouseReleased.set(static_cast<size_t>(button->button), true);
-			m_mouseHeld.set(static_cast<size_t>(button->button), false);
-		}
-		
 		std::bitset<sf::Keyboard::ScancodeCount> m_keyboardHeld;
 		std::bitset<sf::Keyboard::ScancodeCount> m_keyboardPressed;
 		std::bitset<sf::Keyboard::ScancodeCount> m_keyboardReleased;

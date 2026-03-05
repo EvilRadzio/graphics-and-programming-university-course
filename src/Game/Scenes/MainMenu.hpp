@@ -1,12 +1,15 @@
 #pragma once
 
 #include "Game/Schema/Types.hpp"
+#include "Engine/Resources/Textures/Textures.hpp"
 
 namespace Game::Scenes
 {
 	class MainMenu : public Schema::Scene
 	{
 	public:
+
+		MainMenu(Engine::Apis::Scene api) : Scene(api) {}
 
 		void updateGui(Schema::Context& context, Engine::Apis::UpdateGui& api) override
 		{
@@ -32,7 +35,7 @@ namespace Game::Scenes
 				}
 				if (ImGui::Button("Exit"))
 				{
-					api.window.close();
+					//api.window.close();
 				}
 			}
 			ImGui::End();
@@ -40,15 +43,7 @@ namespace Game::Scenes
 
 		void update(Schema::Context& context, Engine::Apis::Update& api) override
 		{
-			auto mousePos = api.input.getMousePosition();
 
-			sf::Rect<float> rect(sf::Vector2f(0,0), sf::Vector2f(10,10));
-
-			if (api.input.isPressed(sf::Mouse::Button::Left) &&
-				rect.contains((sf::Vector2f)mousePos))
-			{
-
-			}
 		}
 
 		void draw(const Schema::Context& context, Engine::Apis::Draw& api) const override

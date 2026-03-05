@@ -6,12 +6,15 @@ namespace sf
 	class Font;
 }
 
-namespace Engine
+namespace Engine::Resources::Textures
 {
+	class Manager;
+}
+
+namespace Engine::World::Tiles
+{
+	class Manager;
 	class TextureManager;
-	class TileManager;
-	class TileTextureManager;
-	class Input;
 }
 
 namespace Engine::Apis
@@ -19,10 +22,9 @@ namespace Engine::Apis
 	struct Draw
 	{
 		sf::RenderTarget& window;
-		const TextureManager& textures;
-		const TileManager& tiles;
-		const TileTextureManager& tileTextures;
-		const Input& input;
+		const Resources::Textures::Manager& textures;
+		const World::Tiles::Manager& tiles;
+		const World::Tiles::TextureManager& tileTextures;
 		const sf::Font& font;
 	};
 }

@@ -8,15 +8,12 @@
 
 #include "Scene.hpp"
 
-namespace Engine
+namespace Engine::Scenes
 {
 	template <Internal I>
-	class SceneManager
+	class Manager
 	{
 	public:
-
-		SceneManager() = default;
-		~SceneManager() = default;
 
 		using SceneFactory = std::function<std::unique_ptr<Scene<I>>()>;
 

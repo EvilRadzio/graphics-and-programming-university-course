@@ -3,7 +3,6 @@
 #include <optional>
 
 #include "Internal.hpp"
-#include "Input.hpp"
 #include "Apis/Apis.hpp"
 
 namespace sf
@@ -11,10 +10,10 @@ namespace sf
 	class RenderWindow;
 }
 
-namespace Engine
+namespace Engine::Scenes
 {
 	template <Internal I>
-	class SceneManager;
+	class Manager;
 
 	// Add input and visual passthrough
 
@@ -23,6 +22,7 @@ namespace Engine
 	{
 	public:
 
+		Scene(const Engine::Apis::Scene& api) : sceneApi(api) {}
 		virtual ~Scene() = default;
 
 		virtual void updateGui(typename I::Context& context, Apis::UpdateGui& api) = 0;
@@ -31,6 +31,8 @@ namespace Engine
 
 	protected:
 
+		Engine::Apis::Scene sceneApi;
+
 		void pushScene(typename I::SceneId tag) { m_push = tag; }
 		void popScene() { m_pop = true; }
 
@@ -38,7 +40,7 @@ namespace Engine
 
 	private:
 
-		friend SceneManager<I>;
+		friend Manager<I>;
 		std::optional<typename I::SceneId> m_push{};
 		bool m_pop{};
 	};
