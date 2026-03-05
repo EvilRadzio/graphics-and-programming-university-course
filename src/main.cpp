@@ -1,5 +1,7 @@
 #include "Game/Game.hpp"
 
+#include "Engine/Ecs/EntityManager.hpp"
+
 int main()
 {
 	Game::Game game;

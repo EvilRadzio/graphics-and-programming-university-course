@@ -7,12 +7,6 @@ namespace Engine
 
 	class TileHandle
 	{
-	public:
-
-		~TileHandle() = default;
-
-	private:
-
 		size_t id{};
 
 		TileHandle(size_t id) : id(id) {};
