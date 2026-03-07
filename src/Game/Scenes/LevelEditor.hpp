@@ -1,17 +1,17 @@
 #pragma once
 
-#include "Game/Schema/Types.hpp"
+#include "Game/Types.hpp"
 
-namespace Game::Scenes
+namespace Scenes
 {
-	class LevelEditor : public Schema::Scene
+	class LevelEditor : public Scene
 	{
 	public:
 
-		LevelEditor(Engine::Apis::Scene api) : Scene(api) {}
+		LevelEditor(px::ApiScene api) : Scene(api) {}
 
-		void updateGui(Schema::Context& context, Engine::Apis::UpdateGui& api) override;
-		void update(Schema::Context& context, Engine::Apis::Update& api) override;
-		void draw(const Schema::Context& context, Engine::Apis::Draw& api) const override;
+		void updateGui(Context& context, px::ApiUpdateGui& api) override;
+		void update(Context& context, px::ApiUpdate& api) override;
+		void draw(const Context& context, px::ApiDraw& api) const override;
 	};
 }

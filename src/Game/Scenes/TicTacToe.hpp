@@ -3,23 +3,23 @@
 #include <stack>
 #include <array>
 
-#include "Game/Schema/Types.hpp"
+#include "Game/Types.hpp"
 
-namespace Game::Scenes
+namespace Scenes
 {
-	class TicTacToe : public Schema::Scene
+	class TicTacToe : public Scene
 	{
 	public:
 
 		enum class T : uint8_t { E, X, O };
 
-		TicTacToe(Engine::Apis::Scene api) : Scene(api)
+		TicTacToe(px::ApiScene api) : Scene(api)
 		{
 			std::array<T, 9> empty{ T::E, T::E, T::E, T::E, T::E, T::E, T::E, T::E, T::E };
 			m_moves.push(empty);
 		}
 
-		void updateGui(Schema::Context& context, Engine::Apis::UpdateGui& api) override
+		void updateGui(Context& context, px::ApiUpdateGui& api) override
 		{
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -41,7 +41,7 @@ namespace Game::Scenes
 			ImGui::End();
 		}
 
-		void update(Schema::Context& context, Engine::Apis::Update& api) override
+		void update(Context& context, px::ApiUpdate& api) override
 		{
 			if (m_timer > 0)
 			{
@@ -101,7 +101,7 @@ namespace Game::Scenes
 			}
 		}
 
-		void draw(const Schema::Context& context, Engine::Apis::Draw& api) const override
+		void draw(const Context& context, px::ApiDraw& api) const override
 		{
 			for (int32_t y = 0; y < 3; ++y) for (int32_t x = 0; x < 3; ++x)
 			{
