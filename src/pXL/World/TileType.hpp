@@ -6,6 +6,6 @@ namespace px
 {
 	enum class TileType : uint8_t
 	{
-		solid, air
+		air, solid
 	};
 }

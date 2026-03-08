@@ -5,5 +5,5 @@
 #include "Tile.hpp"
 #include "TileHandle.hpp"
 #include "TileManager.hpp"
-#include "Map"
+#include "Map.hpp"
 #include "EntityManager.hpp"

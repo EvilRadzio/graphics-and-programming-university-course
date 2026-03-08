@@ -23,7 +23,7 @@ namespace px
 			m_textures.push_back(sf::Texture(errorTexture));
 		}
 
-		TextureHandle getHandle(const std::string& texturePath) const
+		TextureHandle handle(const std::string& texturePath) const
 		{
 			if (!m_textureHandles.count(texturePath))
 			{
@@ -33,22 +33,22 @@ namespace px
 			return m_textureHandles.at(texturePath);
 		}
 
-		const sf::Texture& getTexture(const std::string& path) const
+		const sf::Texture& texture(const std::string& path) const
 		{
 			if (!m_textureHandles.count(path))
 			{
 				return m_textures.at(0);
 			}
 
-			return m_textures.at(m_textureHandles.at(path).id);
+			return m_textures[m_textureHandles.at(path).id];
 		}
 
-		const sf::Texture& getTexture(TextureHandle handle) const
+		const sf::Texture& texture(TextureHandle handle) const
 		{
-			return m_textures.at(handle.id);
+			return m_textures[handle.id];
 		}
 
-		void loadAll(const std::string& directoryPath)
+		void loadRecursive(const std::string& directoryPath)
 		{
 			if (!std::filesystem::exists(directoryPath))
 			{

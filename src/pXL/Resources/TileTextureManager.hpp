@@ -21,8 +21,13 @@ namespace px
 		{
 			m_tileTextures.insert(std::pair{
 				tileHandle.id,
-				m_textureManager.getHandle(texturePath)
+				m_textureManager.handle(texturePath)
 			});
+		}
+
+		bool hasTexture(const TileHandle tileHandle) const
+		{
+			return m_tileTextures.count(tileHandle.id);
 		}
 
 		TextureHandle getTexture(const TileHandle tileHandle) const

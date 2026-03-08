@@ -6,6 +6,6 @@ namespace px
 {
 	struct Tile
 	{
-		TileType type;
+		TileType type{};
 	};
 }

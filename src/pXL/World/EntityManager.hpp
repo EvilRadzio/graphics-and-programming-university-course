@@ -93,14 +93,24 @@ namespace px
 			return Entity(id, ++m_generations[id]);
 		}
 
-		void despawn(Entity entity)
+		void kill(Entity entity)
 		{
-			assert(!m_entities.count(entity.id) && m_generations[entity.id] == entity.generation);
+			assert(m_entities.count(entity.id) && m_generations[entity.id] == entity.generation);
 
-			(std::get<ComponentSet<Components>>(m_components).popIfContains(entity.id), ...);
-			m_entities.erase(entity.id);
+			m_killed.push_back(entity.id);
+		}
 
-			m_freelist.push_back(entity.id);
+		void despawn()
+		{
+			for (const auto id : m_killed)
+			{
+				(std::get<ComponentSet<Components>>(m_components).popIfContains(id), ...);
+				m_entities.erase(id);
+
+				m_freelist.push_back(id);
+			}
+
+			m_killed.clear();
 		}
 
 		template <typename C, typename ... Args>
@@ -114,7 +124,7 @@ namespace px
 		template <typename C>
 		void remove(Entity entity)
 		{
-			assert(!m_entities.count(entity.id) && m_generations[entity.id] == entity.generation);
+			assert(m_entities.count(entity.id) && m_generations[entity.id] == entity.generation);
 
 			std::get<ComponentSet<C>>(m_components).popIfContains(entity.id);
 		}
@@ -122,7 +132,7 @@ namespace px
 		template <typename C>
 		bool has(Entity entity)
 		{
-			assert(!m_entities.count(entity.id) && m_generations[entity.id] == entity.generation);
+			assert(m_entities.count(entity.id) && m_generations[entity.id] == entity.generation);
 
 			return std::get<ComponentSet<C>>(m_components).contains(entity.id);
 		}
@@ -130,7 +140,7 @@ namespace px
 		template <typename C>
 		C& get(Entity entity)
 		{
-			assert(!m_entities.count(entity.id) && m_generations[entity.id] == entity.generation);
+			assert(m_entities.count(entity.id) && m_generations[entity.id] == entity.generation);
 
 			return std::get<ComponentSet<C>>(m_components)[entity.id];
 		}
@@ -156,6 +166,7 @@ namespace px
 
 		std::vector<size_t> m_generations;
 		std::vector<size_t> m_freelist;
+		std::vector<size_t> m_killed;
 		std::unordered_set<size_t> m_entities;
 		std::tuple<ComponentSet<Components>...>m_components;
 	};

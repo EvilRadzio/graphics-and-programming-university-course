@@ -14,24 +14,19 @@ namespace px
 	{
 	public:
 
-		Map(const TileManager& tileManager, size_t width, size_t height) :
-			m_tiles(width* height, tileManager.getEmptyHandle()),
-			m_tileManager(tileManager),
+		Map(TileHandle baseTile, size_t width, size_t height) :
+			m_tiles(width* height, baseTile),
 			m_width(width),
 			m_height(height) {}
 
-		TileHandle atHandle(sf::Vector2u position)
+		size_t width() const { return m_width; }
+		size_t height() const { return m_height; }
+
+		TileHandle at(sf::Vector2u position) const
 		{
 			assert(position.x <= m_width && position.y <= m_height);
 
 			return m_tiles[position.y * m_width + position.x];
-		}
-
-		const Tile& atTile(sf::Vector2u position)
-		{
-			assert(position.x <= m_width && position.y <= m_height);
-
-			return m_tileManager.get(m_tiles[position.y * m_width + position.x]);
 		}
 
 		void set(sf::Vector2u position, TileHandle tileHandle)
@@ -44,7 +39,6 @@ namespace px
 	private:
 
 		std::vector<TileHandle> m_tiles;
-		const TileManager& m_tileManager;
 		size_t m_width;
 		size_t m_height;
 	};

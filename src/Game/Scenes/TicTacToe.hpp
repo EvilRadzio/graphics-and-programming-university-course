@@ -120,10 +120,10 @@ namespace Scenes
 				switch (m_moves.top()[y * 3 + x])
 				{
 				case T::X:
-					rect.setTexture(&api.textures.getTexture("tictactoe/x"));
+					rect.setTexture(&api.textures.texture("tictactoe/x"));
 					break;
 				case T::O:
-					rect.setTexture(&api.textures.getTexture("tictactoe/o"));
+					rect.setTexture(&api.textures.texture("tictactoe/o"));
 					break;
 				}
 

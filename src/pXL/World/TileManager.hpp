@@ -2,6 +2,9 @@
 
 #include <vector>
 #include <utility>
+#include <string>
+#include <unordered_map>
+#include <assert.h>
 
 #include "TileHandle.hpp"
 #include "Tile.hpp"
@@ -19,18 +22,27 @@ namespace px
 
 		~TileManager() = default;
 
-		TileHandle add(Tile tile)
+		TileHandle add(Tile tile, const std::string& name)
 		{
 			m_tiles.push_back(tile);
-			return TileHandle{m_tiles.size() - 1};
+			TileHandle handle = TileHandle{ m_tiles.size() - 1 };
+			m_tileHandles.insert(std::pair{ name, handle });
+			return handle;
 		}
 
-		const Tile& get(TileHandle handle) const
+		TileHandle handle(const std::string& name) const
+		{
+			assert(m_tileHandles.count(name));
+
+			return m_tileHandles.at(name);
+		}
+
+		const Tile& tile(TileHandle handle) const
 		{
 			return m_tiles[handle.id];
 		}
 
-		TileHandle getEmptyHandle() const
+		TileHandle emptyHandle() const
 		{
 			return TileHandle(0);
 		}
@@ -80,6 +92,7 @@ namespace px
 
 		friend Iterator;
 
+		std::unordered_map<std::string, TileHandle> m_tileHandles;
 		std::vector<Tile> m_tiles;
 	};
 }

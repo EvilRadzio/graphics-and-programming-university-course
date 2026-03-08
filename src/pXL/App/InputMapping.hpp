@@ -13,7 +13,8 @@ namespace px
 	{
 	public:
 
-		InputMapping(const InputRaw& raw)
+		InputMapping(const InputRaw& raw) :
+			m_raw(raw)
 		{
 			for (auto& bind : m_bindings)
 			{
