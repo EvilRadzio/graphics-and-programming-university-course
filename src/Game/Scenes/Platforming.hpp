@@ -16,12 +16,11 @@ namespace Scenes
 
 	private:
 
-		void colisionSystem();
 		void playerControlSystem(px::ApiUpdate& api);
 
 		struct Hitbox
 		{
-			float r{};
+			sf::Rect<float> rect{};
 		};
 
 		struct Transform
@@ -32,7 +31,9 @@ namespace Scenes
 
 		struct Gravity{};
 
-		struct Controllable{};
+		struct Controllable{
+			bool canJump{};
+		};
 
 		// This mutable is a bandaid fix, the manager needs a const view and const functions
 		mutable px::EntityManager<

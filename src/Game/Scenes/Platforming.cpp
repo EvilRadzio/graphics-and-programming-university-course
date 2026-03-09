@@ -19,9 +19,20 @@ Scenes::Platforming::Platforming(px::ApiScene api) :
 		}
 	}
 
+	m_map.set(sf::Vector2u(7, 7), sceneApi.tiles.handle("solid_block"));
+	m_map.set(sf::Vector2u(4, 3), sceneApi.tiles.handle("solid_block"));
+	m_map.set(sf::Vector2u(6, 7), sceneApi.tiles.handle("solid_block"));
+	m_map.set(sf::Vector2u(2, 5), sceneApi.tiles.handle("solid_block"));
+	m_map.set(sf::Vector2u(5, 4), sceneApi.tiles.handle("solid_block"));
+
 	auto player = m_entities.spawn();
 	m_entities.add<Transform>(player, sf::Vector2f(3.5f, 3.5f), sf::Vector2f(0.0f, 0.0f));
-	m_entities.add<Hitbox>(player, 0.5f);
+	m_entities.add<Hitbox>(player,
+		sf::Rect<float>(
+			sf::Vector2f(-0.25f, -0.25f),
+			sf::Vector2f(0.5f, 0.75f)
+		)
+	);
 	m_entities.add<Controllable>(player);
 }
 
@@ -51,19 +62,143 @@ void Scenes::Platforming::update(Context& context, px::ApiUpdate& api)
 {
 	playerControlSystem(api);
 
+	// Partial movement also needs to be done in some cases
+	// The grounded check is stupid but what can you co? will fix it later 
 	for (auto [e, transform] : m_entities.view<Transform>())
 	{
-		transform.pos.x += transform.vel.x * api.dt.asSeconds();
+		if (!m_entities.has<Hitbox>(e))
+		{
+			transform.pos += transform.vel * api.dt.asSeconds();
+			continue;
+		}
+
+		auto rect = m_entities.get<Hitbox>(e).rect;
+		
+		int32_t minY = rect.position.y + transform.pos.y;
+		int32_t maxY = rect.position.y + rect.size.y + transform.pos.y;
+
+		if (transform.vel.x < 0.0f)
+		{
+			float currentX = rect.position.x + transform.pos.x;
+			float possibleX = currentX + transform.vel.x * api.dt.asSeconds();
+
+			bool colided = false;
+			while (currentX - 1e-3f > possibleX && !colided)
+			{
+				for (size_t y = minY; y <= maxY; ++y)
+				{
+					if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(currentX - 1e-3f, y))).type != px::TileType::air)
+					{
+						colided = true;
+						break;
+					}
+				}
+
+				if (!colided)
+				{
+					currentX -= 1e-3f;
+				}
+			}
+
+			transform.pos.x = currentX - rect.position.x;
+		}
+		else if (transform.vel.x > 0.0f)
+		{
+			float currentX = rect.position.x + rect.size.x + transform.pos.x;
+			float possibleX = currentX + transform.vel.x * api.dt.asSeconds();
+
+			bool colided = false;
+			while (currentX + 1e-3f < possibleX && !colided)
+			{
+				for (size_t y = minY; y <= maxY; ++y)
+				{
+					if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(currentX + 1e-3f, y))).type != px::TileType::air)
+					{
+						colided = true;
+						break;
+					}
+				}
+
+				if (!colided)
+				{
+					currentX += 1e-3f;
+				}
+			}
+
+			transform.pos.x = currentX - (rect.size.x + rect.position.x);
+		}
+
+		int32_t minX = rect.position.x + transform.pos.x;
+		int32_t maxX = rect.position.x + rect.size.x + transform.pos.x;
+
+		if (m_entities.has<Controllable>(e))
+		{
+			m_entities.get<Controllable>(e).canJump = false;
+		}
+
+		if (transform.vel.y < 0.0f)
+		{
+			float currentY = rect.position.y + transform.pos.y;
+			float possibleY = currentY + transform.vel.y * api.dt.asSeconds();
+
+			bool colided = false;
+			while (currentY - 1e-3f > possibleY && !colided)
+			{
+				for (size_t x = minX; x <= maxX; ++x)
+				{
+					if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(x, currentY - 1e-3f))).type != px::TileType::air)
+					{
+						colided = true;
+						break;
+					}
+				}
+
+				if (!colided)
+				{
+					currentY -= 1e-3f;
+				}
+				else
+				{
+					transform.vel.y = 0.0f;
+				}
+			}
+
+			transform.pos.y = currentY - rect.position.y;
+		}
+		else if (transform.vel.y > 0.0f)
+		{
+			float currentY = rect.position.y + rect.size.y + transform.pos.y;
+			float possibleY = currentY + transform.vel.y * api.dt.asSeconds();
+
+			bool colided = false;
+			while (currentY + 1e-3f < possibleY && !colided)
+			{
+				for (size_t x = minX; x <= maxX; ++x)
+				{;
+					if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(x, currentY + 1e-3f))).type != px::TileType::air)
+					{
+						colided = true;
+						break;
+					}
+				}
+
+				if (!colided)
+				{
+					currentY += 1e-3f;
+				}
+				else
+				{
+					transform.vel.y = 0.0f;
+					if (m_entities.has<Controllable>(e))
+					{
+						m_entities.get<Controllable>(e).canJump = true;
+					}
+				}
+			}
+
+			transform.pos.y = currentY - (rect.size.y + rect.position.y);
+		}
 	}
-
-	colisionSystem();
-
-	for (auto [e, transform] : m_entities.view<Transform>())
-	{
-		transform.pos.y += transform.vel.y * api.dt.asSeconds();
-	}
-
-	colisionSystem();
 
 	m_entities.despawn();
 }
@@ -97,70 +232,25 @@ void Scenes::Platforming::draw(const Context& context, px::ApiDraw& api) const
 	}
 }
 
-void Scenes::Platforming::colisionSystem()
-{
-	for (auto [e, transform] : m_entities.view<Transform>())
-	{
-		if (!m_entities.has<Hitbox>(e)) continue;
-
-		auto& hitbox = m_entities.get<Hitbox>(e);
-
-		auto [minX, maxX] = std::minmax({ transform.pos.x - hitbox.r, transform.pos.x + hitbox.r });
-		auto [minY, maxY] = std::minmax({ transform.pos.y - hitbox.r, transform.pos.y + hitbox.r });
-
-		sf::Vector2f resolution(0.0f, 0.0f);
-
-		for (uint32_t y = minY; y <= maxY; ++y) for (uint32_t x = minX; x <= maxX; ++x)
-		{
-			if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(x, y))).type == px::TileType::air) continue;
-
-			sf::Vector2f closest(
-				std::clamp(transform.pos.x, static_cast<float>(x), x + 1.0f),
-				std::clamp(transform.pos.y, static_cast<float>(y), y + 1.0f)
-			);
-
-			auto difference = transform.pos - closest;
-			auto distanceSquared = difference.dot(difference);
-			if (distanceSquared > hitbox.r * hitbox.r) continue;
-
-			float distance = sqrtf(distanceSquared);
-			sf::Vector2f normal = difference / distance;
-			float penetration = hitbox.r - distance;
-
-			resolution += normal * penetration;
-
-			if (normal.y < -0.7f)
-			{
-				transform.vel.y = 0.0f;
-			}
-		}
-
-		transform.pos += resolution;
-	}
-}
-
 void Scenes::Platforming::playerControlSystem(px::ApiUpdate& api)
 {
-	constexpr float k_acceleration = 20.0f;
-	constexpr float k_deceleration = 20.0f;
-	constexpr float k_maxSpeed = 4.0f;
-	constexpr float k_jumpVelocity = 16.0f;
+	constexpr float k_acceleration = 25.0f;
+	constexpr float k_deceleration = 25.0f;
+	constexpr float k_maxSpeed = 5.0f;
+	constexpr float k_jumpVelocity = 13.25f;
 	constexpr float k_downAcceleration = 30.0f;
-	constexpr float k_maxDownAcceleration = 30.0f;
+	constexpr float k_maxDownAcceleration = 20.0f;
 
-	for (auto [e, _] : m_entities.view<Controllable>())
+	for (auto [e, controllable] : m_entities.view<Controllable>())
 	{
 		if (m_entities.has<Transform>(e))
 		{
 			auto& transform = m_entities.get<Transform>(e);
 
-			bool playerGrounded = sceneApi.tiles.tile(m_map.at(
-				sf::Vector2u(transform.pos.x, transform.pos.y + m_entities.get<Hitbox>(e).r + 1e-6f)
-			)).type != px::TileType::air;
-
-			if (m_input.isPressed(Action::Jump) && playerGrounded)
+			if (m_input.isPressed(Action::Jump) && controllable.canJump)
 			{
 				transform.vel.y = -k_jumpVelocity;
+				controllable.canJump = false;
 			}
 			else
 			{

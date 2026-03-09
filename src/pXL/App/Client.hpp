@@ -22,6 +22,7 @@ namespace px
 			m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game", sf::Style::Close),
 			m_tileTextures(m_textures)
 		{
+			m_window.setKeyRepeatEnabled(false);
 			ImGui::SFML::Init(m_window);
 			ImGui::GetIO().FontGlobalScale = 2.0f;
 		};
@@ -63,22 +64,12 @@ namespace px
 
 				m_scenes.updateGui(m_context, updateGuiApi);
 
-				m_accumulated += realDt;
-				m_accumulated = std::min(m_accumulated, k_maxAccumulated);
+				ApiUpdate updateApi{
+					m_window,
+					k_fixedDt
+				};
 
-				while (m_accumulated >= k_fixedDt)
-				{
-					m_accumulated -= k_fixedDt;
-
-					ApiUpdate updateApi{
-						m_window,
-						k_fixedDt
-					};
-
-					m_scenes.update(m_context, updateApi);
-
-					m_input.newTick();
-				}
+				m_scenes.update(m_context, updateApi);
 
 				m_window.clear(sf::Color::Black);
 
