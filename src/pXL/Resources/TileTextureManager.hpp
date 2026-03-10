@@ -30,7 +30,7 @@ namespace px
 			return m_tileTextures.count(tileHandle.id);
 		}
 
-		TextureHandle getTexture(const TileHandle tileHandle) const
+		TextureHandle handle(const TileHandle tileHandle) const
 		{
 			return m_tileTextures.at(tileHandle.id);
 		}

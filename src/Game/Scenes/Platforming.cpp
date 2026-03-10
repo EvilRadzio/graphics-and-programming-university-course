@@ -215,7 +215,7 @@ void Scenes::Platforming::draw(const Context& context, px::ApiDraw& api) const
 		if (api.tileTextures.hasTexture(handle))
 		{
 			tileRect.setPosition(static_cast<sf::Vector2f>(position * tileSide));
-			tileRect.setTexture(&api.textures.texture(api.tileTextures.getTexture(handle)));
+			tileRect.setTexture(&api.textures.texture(api.tileTextures.handle(handle)));
 
 			api.window.draw(tileRect);
 		}

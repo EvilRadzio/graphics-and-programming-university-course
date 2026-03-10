@@ -6,3 +6,5 @@
 #include "TextureHandle.hpp"
 #include "TextureManager.hpp"
 #include "TileTextureManager.hpp"
+#include "DrawMap.hpp"
+#include "Load.hpp"

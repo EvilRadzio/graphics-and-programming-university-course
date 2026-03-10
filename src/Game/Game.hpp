@@ -11,7 +11,7 @@ public:
 
 	Game()
 	{
-		m_textures.loadRecursive("resources/textures");
+		px::Load::texturesRecursive(m_textures, "resources/textures");
 
 		m_scenes.registerScene(SceneId::MainMenu, [&]() { return std::make_unique<Scenes::MainMenu>(buildSceneApi()); });
 		m_scenes.registerScene(SceneId::TicTacToe, [&]() { return std::make_unique<Scenes::TicTacToe>(buildSceneApi()); });
