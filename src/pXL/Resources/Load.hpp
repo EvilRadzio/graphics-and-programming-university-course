@@ -12,6 +12,6 @@ namespace px
 
 namespace px::Load
 {
-	void texturesRecursive(px::TextureManager& textures, const std::string& directoryPath);
+	void texturesRecursive(px::TextureManager& textures, const std::string& directoryPath, bool smooth = false);
 	void tileTextures(px::TileTextureManager& tileTextures, std::vector<std::pair<TileHandle, std::string>>&& loadedTiles);
 }

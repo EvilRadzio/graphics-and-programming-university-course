@@ -62,7 +62,102 @@ void Scenes::Platforming::update(Context& context, px::ApiUpdate& api)
 {
 	playerControlSystem(api);
 
-	// Partial movement also needs to be done in some cases
+	movementAndColisionSystem(api);
+
+	for (auto [e, _] : m_entities.view<Controllable>())
+	{
+		m_cam.position = m_entities.get<Transform>(e).pos;
+	}
+
+	m_entities.despawn();
+}
+
+void Scenes::Platforming::draw(const Context& context, px::ApiDraw& api) const
+{
+	api.window.setView(m_cam.view(api.window, api.window.getSize().x / 10.0f));
+
+	sf::RectangleShape tileRect(static_cast<sf::Vector2f>(api.window.getSize()) / 10.0f);
+	uint32_t tileSide = 720 / m_map.width();
+
+	for (size_t y = 0; y < m_map.height(); ++y) for (size_t x = 0; x < m_map.width(); ++x)
+	{
+		sf::Vector2u position(x, y);
+		px::TileHandle handle = m_map.at(position);
+		if (api.tileTextures.hasTexture(handle))
+		{
+			tileRect.setPosition(static_cast<sf::Vector2f>(position * tileSide));
+			tileRect.setTexture(&api.textures.texture(api.tileTextures.handle(handle)));
+
+			api.window.draw(tileRect);
+		}
+	}
+
+	for (auto [entity, _] : m_entities.view<Controllable>())
+	{
+		sf::RectangleShape playerRect(sf::Vector2f(tileSide, tileSide));
+		playerRect.setOrigin(sf::Vector2f(tileSide / 2, tileSide / 2));
+		playerRect.setTexture(&api.textures.texture("player"));
+		playerRect.setPosition(m_entities.get<Transform>(entity).pos * static_cast<float>(tileSide));
+
+		api.window.draw(playerRect);
+	}
+
+	api.window.setView(api.window.getDefaultView());
+}
+
+void Scenes::Platforming::playerControlSystem(px::ApiUpdate& api)
+{
+	constexpr float k_acceleration = 25.0f;
+	constexpr float k_deceleration = 25.0f;
+	constexpr float k_maxSpeed = 5.0f;
+	constexpr float k_jumpVelocity = 13.25f;
+	constexpr float k_downAcceleration = 30.0f;
+	constexpr float k_maxDownAcceleration = 20.0f;
+
+	for (auto [e, controllable] : m_entities.view<Controllable>())
+	{
+		if (m_entities.has<Transform>(e))
+		{
+			auto& transform = m_entities.get<Transform>(e);
+
+			if (m_input.isPressed(Action::Jump) && controllable.canJump)
+			{
+				transform.vel.y = -k_jumpVelocity;
+				controllable.canJump = false;
+			}
+			else
+			{
+				transform.vel.y = std::min(transform.vel.y + k_downAcceleration * api.dt.asSeconds(), k_maxDownAcceleration);
+			}
+
+			int32_t direction = 0 - m_input.isHeld(Action::Left) + m_input.isHeld(Action::Right);
+
+			transform.vel.x += (direction * k_acceleration * api.dt.asSeconds());
+
+			if (!direction)
+			{
+				float newVelocity = std::abs(transform.vel.x) - k_deceleration * api.dt.asSeconds();
+
+				if (newVelocity < 0.0f)
+				{
+					transform.vel.x = 0.0f;
+					continue;
+				}
+
+				transform.vel.x = (transform.vel.x > 0.0f ? 1.0f : -1.0f) * newVelocity;
+				continue;
+			}
+
+			if (std::abs(transform.vel.x) > k_maxSpeed)
+			{
+				transform.vel.x = (transform.vel.x > 0.0f ? 1.0f : -1.0f) * k_maxSpeed;
+			}
+		}
+	}
+}
+
+void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
+{
 	// The grounded check is stupid but what can you co? will fix it later 
 	for (auto [e, transform] : m_entities.view<Transform>())
 	{
@@ -73,7 +168,7 @@ void Scenes::Platforming::update(Context& context, px::ApiUpdate& api)
 		}
 
 		auto rect = m_entities.get<Hitbox>(e).rect;
-		
+
 		int32_t minY = rect.position.y + transform.pos.y;
 		int32_t maxY = rect.position.y + rect.size.y + transform.pos.y;
 
@@ -174,7 +269,8 @@ void Scenes::Platforming::update(Context& context, px::ApiUpdate& api)
 			while (currentY + 1e-3f < possibleY && !colided)
 			{
 				for (size_t x = minX; x <= maxX; ++x)
-				{;
+				{
+					;
 					if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(x, currentY + 1e-3f))).type != px::TileType::air)
 					{
 						colided = true;
@@ -197,88 +293,6 @@ void Scenes::Platforming::update(Context& context, px::ApiUpdate& api)
 			}
 
 			transform.pos.y = currentY - (rect.size.y + rect.position.y);
-		}
-	}
-
-	m_entities.despawn();
-}
-
-void Scenes::Platforming::draw(const Context& context, px::ApiDraw& api) const
-{
-	sf::RectangleShape tileRect(static_cast<sf::Vector2f>(api.window.getSize()) / 10.0f);
-	uint32_t tileSide = 720 / m_map.width();
-
-	for (size_t y = 0; y < m_map.height(); ++y) for (size_t x = 0; x < m_map.width(); ++x)
-	{
-		sf::Vector2u position(x, y);
-		px::TileHandle handle = m_map.at(position);
-		if (api.tileTextures.hasTexture(handle))
-		{
-			tileRect.setPosition(static_cast<sf::Vector2f>(position * tileSide));
-			tileRect.setTexture(&api.textures.texture(api.tileTextures.handle(handle)));
-
-			api.window.draw(tileRect);
-		}
-	}
-
-	for (auto [entity, _] : m_entities.view<Controllable>())
-	{
-		sf::RectangleShape playerRect(sf::Vector2f(tileSide, tileSide));
-		playerRect.setOrigin(sf::Vector2f(tileSide /2, tileSide / 2));
-		playerRect.setTexture(&api.textures.texture("player"));
-		playerRect.setPosition(m_entities.get<Transform>(entity).pos * static_cast<float>(tileSide));
-
-		api.window.draw(playerRect);
-	}
-}
-
-void Scenes::Platforming::playerControlSystem(px::ApiUpdate& api)
-{
-	constexpr float k_acceleration = 25.0f;
-	constexpr float k_deceleration = 25.0f;
-	constexpr float k_maxSpeed = 5.0f;
-	constexpr float k_jumpVelocity = 13.25f;
-	constexpr float k_downAcceleration = 30.0f;
-	constexpr float k_maxDownAcceleration = 20.0f;
-
-	for (auto [e, controllable] : m_entities.view<Controllable>())
-	{
-		if (m_entities.has<Transform>(e))
-		{
-			auto& transform = m_entities.get<Transform>(e);
-
-			if (m_input.isPressed(Action::Jump) && controllable.canJump)
-			{
-				transform.vel.y = -k_jumpVelocity;
-				controllable.canJump = false;
-			}
-			else
-			{
-				transform.vel.y = std::min(transform.vel.y + k_downAcceleration * api.dt.asSeconds(), k_maxDownAcceleration);
-			}
-
-			int32_t direction = 0 - m_input.isHeld(Action::Left) + m_input.isHeld(Action::Right);
-
-			transform.vel.x += (direction * k_acceleration * api.dt.asSeconds());
-
-			if (!direction)
-			{
-				float newVelocity = std::abs(transform.vel.x) - k_deceleration * api.dt.asSeconds();
-
-				if (newVelocity < 0.0f)
-				{
-					transform.vel.x = 0.0f;
-					continue;
-				}
-
-				transform.vel.x = (transform.vel.x > 0.0f ? 1.0f : -1.0f) * newVelocity;
-				continue;
-			}
-
-			if (std::abs(transform.vel.x) > k_maxSpeed)
-			{
-				transform.vel.x = (transform.vel.x > 0.0f ? 1.0f : -1.0f) * k_maxSpeed;
-			}
 		}
 	}
 }

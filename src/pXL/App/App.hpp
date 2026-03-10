@@ -12,3 +12,4 @@
 #include "Scene.hpp"
 #include "SceneManager.hpp"
 #include "Client.hpp"
+#include "Camera.hpp"

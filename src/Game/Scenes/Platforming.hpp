@@ -17,6 +17,7 @@ namespace Scenes
 	private:
 
 		void playerControlSystem(px::ApiUpdate& api);
+		void movementAndColisionSystem(px::ApiUpdate& api);
 
 		struct Hitbox
 		{
@@ -52,5 +53,7 @@ namespace Scenes
 		static constexpr uint8_t k_actions = static_cast<uint8_t>(Action::Right) + 1;
 
 		px::InputMapping<Action, k_actions> m_input;
+
+		px::Camera m_cam;
 	};
 }

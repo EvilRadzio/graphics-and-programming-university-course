@@ -5,7 +5,7 @@
 #include "TextureManager.hpp"
 #include "TileTextureManager.hpp"
 
-void px::Load::texturesRecursive(px::TextureManager& textures, const std::string& directoryPath)
+void px::Load::texturesRecursive(px::TextureManager& textures, const std::string& directoryPath, bool smooth)
 {
 	if (!std::filesystem::exists(directoryPath))
 	{
@@ -24,6 +24,8 @@ void px::Load::texturesRecursive(px::TextureManager& textures, const std::string
 		{
 			continue;
 		}
+
+		texture.setSmooth(smooth);
 
 		std::string path = std::filesystem::relative(entry.path(), directoryPath).replace_extension().generic_string();
 
