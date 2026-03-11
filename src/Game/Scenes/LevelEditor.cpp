@@ -42,7 +42,7 @@ void Scenes::LevelEditor::draw(const Context& context, px::ApiDraw& api) const
 {
 	//px::DrawMap map(LE_map, api.tileTextures, sceneApi.tiles);
 
-	sf::RectangleShape tileRect(static_cast<sf::Vector2f>(api.window.getSize()) / 10.0f);
+	sf::RectangleShape tileRect(static_cast<sf::Vector2f>(api.window.getSize()) / 25.0f);
 	uint32_t tileSide = 720 / LE_map.width();
 
 	for (size_t y = 0; y < LE_map.height(); ++y) for (size_t x = 0; x < LE_map.width(); ++x)
