@@ -1,14 +1,16 @@
 #pragma once
 
-#include "Game/Schema/Types.hpp"
+#include "Game/Types.hpp"
 
-namespace Game::Scenes
+namespace Scenes
 {
-	class MainMenu : public Schema::Scene
+	class MainMenu : public Scene
 	{
 	public:
 
-		void updateGui(Schema::Context& context, Engine::Apis::UpdateGui& api) override
+		MainMenu(px::ApiScene api) : Scene(api) {}
+
+		void updateGui(Context& context, px::ApiUpdateGui& api) override
 		{
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -24,39 +26,35 @@ namespace Game::Scenes
 			{
 				if (ImGui::Button("Play TicTacToe"))
 				{
-					pushScene(Schema::SceneId::TicTacToe);
+					pushScene(SceneId::TicTacToe);
+				}
+				if (ImGui::Button("Platforming!!!"))
+				{
+					pushScene(SceneId::Platforming);
 				}
 				if (ImGui::Button("Tilemap Editor"))
 				{
-					pushScene(Schema::SceneId::LevelEditor);
+					pushScene(SceneId::LevelEditor);
 				}
 				if (ImGui::Button("Exit"))
 				{
-					api.window.close();
+					//api.window.close();
 				}
 			}
 			ImGui::End();
 		}
 
-		void update(Schema::Context& context, Engine::Apis::Update& api) override
+		void update(Context& context, px::ApiUpdate& api) override
 		{
-			auto mousePos = api.input.getMousePosition();
 
-			sf::Rect<float> rect(sf::Vector2f(0,0), sf::Vector2f(10,10));
-
-			if (api.input.isPressed(sf::Mouse::Button::Left) &&
-				rect.contains((sf::Vector2f)mousePos))
-			{
-
-			}
 		}
 
-		void draw(const Schema::Context& context, Engine::Apis::Draw& api) const override
+		void draw(const Context& context, px::ApiDraw& api) const override
 		{
 			api.window.clear(sf::Color(0x222222ff));
 
 			sf::RectangleShape mikuShape(static_cast<sf::Vector2f>(api.window.getSize()));
-			mikuShape.setTexture(&api.textures.getTexture("player"));
+			mikuShape.setTexture(&api.textures.texture("player"));
 
 			api.window.draw(mikuShape);
 		}

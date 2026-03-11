@@ -1,6 +1,6 @@
 #include "LevelEditor.hpp"
 
-void Game::Scenes::LevelEditor::updateGui(Schema::Context& context, Engine::Apis::UpdateGui& api)
+void Scenes::LevelEditor::updateGui(Context& context, px::ApiUpdateGui& api)
 {
 	if (ImGui::Begin("Editor Menu"))
 	{
@@ -12,15 +12,12 @@ void Game::Scenes::LevelEditor::updateGui(Schema::Context& context, Engine::Apis
 	ImGui::End();
 }
 
-void Game::Scenes::LevelEditor::update(Schema::Context& context, Engine::Apis::Update& api)
+void Scenes::LevelEditor::update(Context& context, px::ApiUpdate& api)
 {
-	if (api.input.isPressed(sf::Keyboard::Scan::Escape))
-	{
-		popScene();
-	}
+
 }
 
-void Game::Scenes::LevelEditor::draw(const Schema::Context& context, Engine::Apis::Draw& api) const
+void Scenes::LevelEditor::draw(const Context& context, px::ApiDraw& api) const
 {
 
 }

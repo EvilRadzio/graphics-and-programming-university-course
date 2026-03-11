@@ -3,23 +3,23 @@
 #include <stack>
 #include <array>
 
-#include "Game/Schema/Types.hpp"
+#include "Game/Types.hpp"
 
-namespace Game::Scenes
+namespace Scenes
 {
-	class TicTacToe : public Schema::Scene
+	class TicTacToe : public Scene
 	{
 	public:
 
 		enum class T : uint8_t { E, X, O };
 
-		TicTacToe()
+		TicTacToe(px::ApiScene api) : Scene(api)
 		{
 			std::array<T, 9> empty{ T::E, T::E, T::E, T::E, T::E, T::E, T::E, T::E, T::E };
 			m_moves.push(empty);
 		}
 
-		void updateGui(Schema::Context& context, Engine::Apis::UpdateGui& api) override
+		void updateGui(Context& context, px::ApiUpdateGui& api) override
 		{
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -41,7 +41,7 @@ namespace Game::Scenes
 			ImGui::End();
 		}
 
-		void update(Schema::Context& context, Engine::Apis::Update& api) override
+		void update(Context& context, px::ApiUpdate& api) override
 		{
 			if (m_timer > 0)
 			{
@@ -57,13 +57,13 @@ namespace Game::Scenes
 
 				return;
 			}
-			if (api.input.isPressed(sf::Mouse::Button::Right) &&
+			if (sceneApi.input.isPressed(sf::Mouse::Button::Right) &&
 				m_moves.size() > 1)
 			{
 				m_moves.pop();
 			}
 
-			sf::Vector2i mousePosition = api.input.getMousePosition();
+			sf::Vector2i mousePosition = sceneApi.input.getMousePosition();
 
 			for (int32_t y = 0; y < 3; ++y) for (int32_t x = 0; x < 3; ++x)
 			{
@@ -73,7 +73,7 @@ namespace Game::Scenes
 				);
 
 				if (rect.contains(mousePosition) &&
-					api.input.isPressed(sf::Mouse::Button::Left) &&
+					sceneApi.input.isPressed(sf::Mouse::Button::Left) &&
 					m_moves.top()[y * 3 + x] == T::E)
 				{
 					m_moves.push(m_moves.top());
@@ -101,7 +101,7 @@ namespace Game::Scenes
 			}
 		}
 
-		void draw(const Schema::Context& context, Engine::Apis::Draw& api) const override
+		void draw(const Context& context, px::ApiDraw& api) const override
 		{
 			for (int32_t y = 0; y < 3; ++y) for (int32_t x = 0; x < 3; ++x)
 			{
@@ -120,10 +120,10 @@ namespace Game::Scenes
 				switch (m_moves.top()[y * 3 + x])
 				{
 				case T::X:
-					rect.setTexture(&api.textures.getTexture("tictactoe/x"));
+					rect.setTexture(&api.textures.texture("tictactoe/x"));
 					break;
 				case T::O:
-					rect.setTexture(&api.textures.getTexture("tictactoe/o"));
+					rect.setTexture(&api.textures.texture("tictactoe/o"));
 					break;
 				}
 

@@ -37,6 +37,13 @@ FetchContent_Declare(imgui_sfml
 )
 FetchContent_MakeAvailable(imgui_sfml)
 
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.2
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES}
@@ -45,6 +52,7 @@ add_executable(${PROJECT_NAME} ${SOURCES}
 
 target_include_directories(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/src"
+	${nlohmann_json_SOURCE_DIR}/include
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
