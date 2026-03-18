@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <string>
 
-#include "TextureHandle.hpp"
+#include "AssetManager.hpp"
 #include "pXL/World/TileManager.hpp"
 
 namespace px
@@ -12,8 +12,8 @@ namespace px
 	{
 	public:
 
-		TileTextureManager(const TextureManager& textureManager)
-			: m_textureManager(textureManager) {}
+		TileTextureManager(const AssetManager& assetManager)
+			: m_assetManager(assetManager) {}
 
 		~TileTextureManager() = default;
 
@@ -21,7 +21,7 @@ namespace px
 		{
 			m_tileTextures.insert(std::pair{
 				tileHandle.id,
-				m_textureManager.handle(texturePath)
+				m_assetManager.textureHandle(texturePath)
 			});
 		}
 
@@ -38,6 +38,6 @@ namespace px
 	private:
 
 		std::unordered_map<size_t, TextureHandle> m_tileTextures;
-		const TextureManager& m_textureManager;
+		const AssetManager& m_assetManager;
 	};
 }

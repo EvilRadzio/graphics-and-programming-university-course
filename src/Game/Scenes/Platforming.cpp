@@ -4,7 +4,7 @@
 
 Scenes::Platforming::Platforming(px::ApiScene api) :
 	Scene(api),
-	m_map(api.tiles.emptyHandle(), sf::Vector2u(10, 10)),
+	m_map(sf::Vector2u(10, 10)),
 	m_input(api.input)
 {
 	m_input.set(Action::Jump, sf::Keyboard::Scancode::Space);
@@ -76,7 +76,7 @@ void Scenes::Platforming::draw(const Context& context, px::ApiDraw& api) const
 {
 	api.window.setView(m_cam.view(api.window, api.window.getSize().x / 10.0f));
 
-	px::DrawMap map(m_map, api.tileTextures, api.textures);
+	px::DrawMap map(m_map, api.tileTextures, api.assets);
 
 	sf::RectangleShape tileRect(static_cast<sf::Vector2f>(api.window.getSize()) / 10.0f);
 	uint32_t tileSide = 720 / m_map.size().x;
@@ -97,7 +97,7 @@ void Scenes::Platforming::draw(const Context& context, px::ApiDraw& api) const
 	{
 		sf::RectangleShape playerRect(sf::Vector2f(tileSide, tileSide));
 		playerRect.setOrigin(sf::Vector2f(tileSide / 2, tileSide / 2));
-		playerRect.setTexture(&api.textures.texture("player"));
+		playerRect.setTexture(&api.assets.texture("player"));
 		playerRect.setPosition(m_entities.get<Transform>(entity).pos * static_cast<float>(tileSide));
 
 		api.window.draw(playerRect);
@@ -183,7 +183,8 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 			{
 				for (size_t y = minY; y <= maxY; ++y)
 				{
-					if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(currentX - 1e-3f, y))).type != px::TileType::air)
+					auto tile = m_map.at(sf::Vector2u(currentX - 1e-3f, y));
+					if (tile.has_value() && sceneApi.tiles.tile(tile.value()).type != px::TileType::air)
 					{
 						colided = true;
 						break;
@@ -208,7 +209,8 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 			{
 				for (size_t y = minY; y <= maxY; ++y)
 				{
-					if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(currentX + 1e-3f, y))).type != px::TileType::air)
+					auto tile = m_map.at(sf::Vector2u(currentX + 1e-3f, y));
+					if (tile.has_value() && sceneApi.tiles.tile(tile.value()).type != px::TileType::air)
 					{
 						colided = true;
 						break;
@@ -242,7 +244,8 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 			{
 				for (size_t x = minX; x <= maxX; ++x)
 				{
-					if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(x, currentY - 1e-3f))).type != px::TileType::air)
+					auto tile = m_map.at(sf::Vector2u(x, currentY - 1e-3f));
+					if (tile.has_value() && sceneApi.tiles.tile(tile.value()).type != px::TileType::air)
 					{
 						colided = true;
 						break;
@@ -271,8 +274,8 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 			{
 				for (size_t x = minX; x <= maxX; ++x)
 				{
-					;
-					if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(x, currentY + 1e-3f))).type != px::TileType::air)
+					auto tile = m_map.at(sf::Vector2u(x, currentY + 1e-3f));
+					if (tile.has_value() && sceneApi.tiles.tile(tile.value()).type != px::TileType::air)
 					{
 						colided = true;
 						break;

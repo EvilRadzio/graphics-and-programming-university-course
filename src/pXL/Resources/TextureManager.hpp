@@ -21,6 +21,7 @@ namespace px
 		{
 			sf::Image errorTexture(sf::Vector2u(1, 1), sf::Color::Magenta);
 			m_textures.push_back(sf::Texture(errorTexture));
+			m_textureHandles.insert(std::pair{ "error_texture", TextureHandle(0) });
 		}
 
 		TextureHandle add(sf::Texture&& texture, const std::string& textureName)

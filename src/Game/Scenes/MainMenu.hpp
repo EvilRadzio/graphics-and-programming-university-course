@@ -54,7 +54,7 @@ namespace Scenes
 			api.window.clear(sf::Color(0x222222ff));
 
 			sf::RectangleShape mikuShape(static_cast<sf::Vector2f>(api.window.getSize()));
-			mikuShape.setTexture(&api.textures.texture("player"));
+			mikuShape.setTexture(&api.assets.texture("player"));
 
 			api.window.draw(mikuShape);
 		}

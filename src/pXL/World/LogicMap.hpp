@@ -15,9 +15,14 @@ namespace px
 
 		sf::Vector2u size() const { return m_map.size(); }
 
+		bool isTile(sf::Vector2u position) const
+		{
+			return m_map.at(position).has_value();
+		}
+
 		const Tile& at(sf::Vector2u position) const
 		{
-			return m_tiles.tile(m_map.at(position));
+			return m_tiles.tile(m_map.at(position).value());
 		}
 
 	private:

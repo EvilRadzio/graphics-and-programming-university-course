@@ -48,11 +48,12 @@ void Scenes::LevelEditor::draw(const Context& context, px::ApiDraw& api) const
 	for (size_t y = 0; y < LE_map.size().y; ++y) for (size_t x = 0; x < LE_map.size().x; ++x)
 	{
 		sf::Vector2u position(x, y);
-		px::TileHandle handle = LE_map.at(position);
-		if (api.tileTextures.hasTexture(handle))
+		auto handle = LE_map.at(position);
+		if (!handle) continue;
+		if (api.tileTextures.hasTexture(handle.value()))
 		{
 			tileRect.setPosition(static_cast<sf::Vector2f>(position * tileSide));
-			tileRect.setTexture(&api.textures.texture(api.tileTextures.handle(handle)));
+			tileRect.setTexture(&api.assets.texture(api.tileTextures.handle(handle.value())));
 
 			api.window.draw(tileRect);
 		}

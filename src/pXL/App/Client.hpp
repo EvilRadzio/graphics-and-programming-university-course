@@ -20,7 +20,7 @@ namespace px
 
 		Client() :
 			m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game", sf::Style::Close),
-			m_tileTextures(m_textures)
+			m_tileTextures(m_assets)
 		{
 			m_window.setKeyRepeatEnabled(false);
 			ImGui::SFML::Init(m_window);
@@ -75,7 +75,7 @@ namespace px
 
 				ApiDraw drawApi{
 					m_window,
-					m_textures,
+					m_assets,
 					m_tiles,
 					m_tileTextures,
 					m_font
@@ -100,7 +100,7 @@ namespace px
 		}
 
 		typename I::Context m_context;
-		TextureManager m_textures;
+		AssetManager m_assets;
 		sf::RenderWindow m_window;
 		SceneManager<I> m_scenes;
 		TileTextureManager m_tileTextures;

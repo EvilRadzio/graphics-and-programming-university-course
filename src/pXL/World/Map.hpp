@@ -3,6 +3,7 @@
 #include <vector>
 #include <stdint.h>
 #include <cassert>
+#include <optional>
 
 #include <SFML/System.hpp>
 
@@ -14,13 +15,13 @@ namespace px
 	{
 	public:
 
-		Map(TileHandle baseTile, sf::Vector2u size) :
-			m_tiles(size.x * size.y, baseTile),
+		Map(sf::Vector2u size) :
+			m_tiles(size.x* size.y, {}),
 			m_size(size) {}
 
 		sf::Vector2u size() const { return m_size; }
 
-		TileHandle at(sf::Vector2u position) const
+		std::optional<TileHandle> at(sf::Vector2u position) const
 		{
 			assert(position.x <= m_size.x && position.y <= m_size.y);
 
@@ -36,7 +37,7 @@ namespace px
 
 	private:
 
-		std::vector<TileHandle> m_tiles;
+		std::vector<std::optional<TileHandle>> m_tiles;
 		sf::Vector2u m_size;
 	};
 }

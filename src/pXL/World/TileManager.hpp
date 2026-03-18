@@ -15,13 +15,6 @@ namespace px
 	{
 	public:
 
-		TileManager()
-		{
-			m_tiles.push_back(Tile{});
-		}
-
-		~TileManager() = default;
-
 		TileHandle add(Tile tile, const std::string& name)
 		{
 			m_tiles.push_back(tile);
@@ -40,11 +33,6 @@ namespace px
 		const Tile& tile(TileHandle handle) const
 		{
 			return m_tiles[handle.id];
-		}
-
-		TileHandle emptyHandle() const
-		{
-			return TileHandle(0);
 		}
 
 		class Iterator

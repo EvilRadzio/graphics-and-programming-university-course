@@ -13,8 +13,10 @@ namespace px
 	{
 	public:
 
-		void loadTexture(sf::Texture&& texture, const std::string& name);
-		sf::Texture getTexture(const std::string& name);
+		void add(sf::Texture&& texture, const std::string& name);
+		const sf::Texture& texture(const std::string& name) const;
+		const sf::Texture& texture(const TextureHandle handle) const;
+		TextureHandle textureHandle(const std::string& name) const;
 
 	private:
 

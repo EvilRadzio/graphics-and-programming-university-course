@@ -8,14 +8,14 @@ namespace sf
 
 namespace px
 {
-	class TextureManager;
+	class AssetManager;
 	class TileManager;
 	class TileTextureManager;
 
 	struct ApiDraw
 	{
 		sf::RenderTarget& window;
-		const TextureManager& textures;
+		const AssetManager& assets;
 		const TileManager& tiles;
 		const TileTextureManager& tileTextures;
 		const sf::Font& font;
