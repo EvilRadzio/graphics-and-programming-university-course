@@ -5,7 +5,7 @@ namespace px
 	class TileManager;
 	class TileTextureManager;
 
-	class TileHandle
+	struct TileHandle
 	{
 		size_t id{};
 
