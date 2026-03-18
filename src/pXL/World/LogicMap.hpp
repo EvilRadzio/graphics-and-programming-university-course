@@ -13,8 +13,7 @@ namespace px
 			m_map(map),
 			m_tiles(tiles) {}
 
-		size_t width() const { return m_map.width(); }
-		size_t height() const { return m_map.height(); }
+		sf::Vector2u size() const { return m_map.size(); }
 
 		const Tile& at(sf::Vector2u position) const
 		{

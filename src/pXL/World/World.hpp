@@ -8,4 +8,3 @@
 #include "Map.hpp"
 #include "LogicMap.hpp"
 #include "EntityManager.hpp"
-#include "Load.hpp"

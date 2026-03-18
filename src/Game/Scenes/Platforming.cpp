@@ -4,16 +4,16 @@
 
 Scenes::Platforming::Platforming(px::ApiScene api) :
 	Scene(api),
-	m_map(api.tiles.emptyHandle(), 10, 10),
+	m_map(api.tiles.emptyHandle(), sf::Vector2u(10, 10)),
 	m_input(api.input)
 {
 	m_input.set(Action::Jump, sf::Keyboard::Scancode::Space);
 	m_input.set(Action::Left, sf::Keyboard::Scancode::A);
 	m_input.set(Action::Right, sf::Keyboard::Scancode::D);
 
-	for (size_t y = 0; y < m_map.height(); ++y) for (size_t x = 0; x < m_map.width(); ++x)
+	for (size_t y = 0; y < m_map.size().y; ++y) for (size_t x = 0; x < m_map.size().x; ++x)
 	{
-		if (x == 0 || x == m_map.width() - 1 || y == 0 || y == m_map.height() - 1)
+		if (x == 0 || x == m_map.size().x - 1 || y == 0 || y == m_map.size().y - 1)
 		{
 			m_map.set(sf::Vector2u(x, y), sceneApi.tiles.handle("solid_block"));
 		}
@@ -76,17 +76,18 @@ void Scenes::Platforming::draw(const Context& context, px::ApiDraw& api) const
 {
 	api.window.setView(m_cam.view(api.window, api.window.getSize().x / 10.0f));
 
-	sf::RectangleShape tileRect(static_cast<sf::Vector2f>(api.window.getSize()) / 10.0f);
-	uint32_t tileSide = 720 / m_map.width();
+	px::DrawMap map(m_map, api.tileTextures, api.textures);
 
-	for (size_t y = 0; y < m_map.height(); ++y) for (size_t x = 0; x < m_map.width(); ++x)
+	sf::RectangleShape tileRect(static_cast<sf::Vector2f>(api.window.getSize()) / 10.0f);
+	uint32_t tileSide = 720 / m_map.size().x;
+
+	for (size_t y = 0; y < m_map.size().y; ++y) for (size_t x = 0; x < m_map.size().x; ++x)
 	{
 		sf::Vector2u position(x, y);
-		px::TileHandle handle = m_map.at(position);
-		if (api.tileTextures.hasTexture(handle))
+		if (map.hasTexture(position))
 		{
 			tileRect.setPosition(static_cast<sf::Vector2f>(position * tileSide));
-			tileRect.setTexture(&api.textures.texture(api.tileTextures.handle(handle)));
+			tileRect.setTexture(&map.at(position));
 
 			api.window.draw(tileRect);
 		}

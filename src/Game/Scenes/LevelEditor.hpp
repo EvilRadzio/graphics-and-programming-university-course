@@ -11,7 +11,7 @@ namespace Scenes
 		int currentTile = 0;
 	public:
 			
-		LevelEditor(px::ApiScene api) : Scene(api), LE_map(sceneApi.tiles.emptyHandle(), 25, 25) {}
+		LevelEditor(px::ApiScene api) : Scene(api), LE_map(sceneApi.tiles.emptyHandle(), sf::Vector2u(25, 25)) {}
 
 		void updateGui(Context& context, px::ApiUpdateGui& api) override;
 		void update(Context& context, px::ApiUpdate& api) override;
