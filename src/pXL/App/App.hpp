@@ -9,6 +9,6 @@
 #include "InputMapping.hpp"
 #include "Internal.hpp"
 #include "Scene.hpp"
-#include "SceneManager.hpp"
+#include "SceneStack.hpp"
 #include "Client.hpp"
 #include "Load.hpp"

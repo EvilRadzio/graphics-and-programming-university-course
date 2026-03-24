@@ -15,7 +15,7 @@ namespace sf
 namespace px
 {
 	template <Internal I>
-	class SceneManager;
+	class SceneStack;
 
 	// Add input and visual passthrough
 
@@ -42,7 +42,7 @@ namespace px
 
 	private:
 
-		friend SceneManager<I>;
+		friend SceneStack<I>;
 		std::optional<typename I::SceneId> m_push{};
 		bool m_pop{};
 	};

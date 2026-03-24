@@ -7,7 +7,7 @@
 #include <imgui-SFML.h>
 #include <imgui.h>
 
-#include "SceneManager.hpp"
+#include "SceneStack.hpp"
 #include "InputRaw.hpp"
 
 namespace px
@@ -18,10 +18,10 @@ namespace px
 	public:
 
 		Client() :
-			m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game", sf::Style::Close)
+			window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game", sf::Style::Close)
 		{
-			m_window.setKeyRepeatEnabled(false);
-			ImGui::SFML::Init(m_window);
+			window.setKeyRepeatEnabled(false);
+			ImGui::SFML::Init(window);
 			ImGui::GetIO().FontGlobalScale = 2.0f;
 		};
 
@@ -32,49 +32,49 @@ namespace px
 
 		void run()
 		{
-			m_window.setFramerateLimit(60);
+			window.setFramerateLimit(60);
 
 			m_clock.restart();
 
-			while (m_window.isOpen())
+			while (window.isOpen())
 			{
-				m_input.newTick();
+				input.newTick();
 
-				while (const auto event = m_window.pollEvent())
+				while (const auto event = window.pollEvent())
 				{
-					m_input.readEvent(*event);
+					input.readEvent(*event);
 
-					ImGui::SFML::ProcessEvent(m_window, *event);
+					ImGui::SFML::ProcessEvent(window, *event);
 
 					if (event->is<sf::Event::Closed>())
 					{
-						m_window.close();
+						window.close();
 					}
 				}
 
 				sf::Time realDt = m_clock.restart();
 
-				ImGui::SFML::Update(m_window, realDt);
+				ImGui::SFML::Update(window, realDt);
 
 				ApiUpdate updateApi{
-					m_window,
+					window,
 					k_fixedDt
 				};
 
-				m_scenes.update(updateApi);
+				scenes.update(updateApi);
 
-				m_window.clear(sf::Color::Black);
+				window.clear(sf::Color::Black);
 
 				ApiDraw drawApi{
-					m_window,
+					window,
 					assets
 				};
 
-				m_scenes.draw(drawApi);
+				scenes.draw(drawApi);
 
-				ImGui::SFML::Render(m_window);
+				ImGui::SFML::Render(window);
 
-				m_window.display();
+				window.display();
 			}
 		}
 
@@ -83,15 +83,15 @@ namespace px
 		ApiScene buildSceneApi()
 		{
 			return ApiScene{
-				m_input
+				input
 			};
 		}
 
-		typename I::Context m_context;
+		typename I::Context ctx;
 		Assets assets;
-		sf::RenderWindow m_window;
-		SceneManager<I> m_scenes;
-		InputRaw m_input;
+		sf::RenderWindow window;
+		SceneStack<I> scenes;
+		InputRaw input;
 
 	private:
 

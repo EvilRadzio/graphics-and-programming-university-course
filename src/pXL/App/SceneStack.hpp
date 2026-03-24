@@ -11,7 +11,7 @@
 namespace px
 {
 	template <Internal I>
-	class SceneManager
+	class SceneStack
 	{
 	public:
 
