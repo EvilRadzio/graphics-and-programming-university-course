@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Map.hpp"
+#include "IdMap.hpp"
 #include "TileManager.hpp"
 
 namespace px
@@ -9,7 +9,7 @@ namespace px
 	{
 	public:
 
-		LogicMap(const Map& map, const TileManager& tiles) :
+		LogicMap(const IdMap& map, const TileManager& tiles) :
 			m_map(map),
 			m_tiles(tiles) {}
 
@@ -27,7 +27,7 @@ namespace px
 
 	private:
 
-		const Map& m_map;
+		const IdMap& m_map;
 		const TileManager& m_tiles;
 	};
 }

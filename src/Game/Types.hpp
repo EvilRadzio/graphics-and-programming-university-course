@@ -4,6 +4,7 @@
 
 #include "Context.hpp"
 #include "SceneId.hpp"
+#include "Tile.hpp"
 
 struct Internal
 {

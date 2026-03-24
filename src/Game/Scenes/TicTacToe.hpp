@@ -13,13 +13,13 @@ namespace Scenes
 
 		enum class T : uint8_t { E, X, O };
 
-		TicTacToe(px::ApiScene api) : Scene(api)
+		TicTacToe(px::ApiScene api, Context& ctx) : Scene(api, ctx)
 		{
 			std::array<T, 9> empty{ T::E, T::E, T::E, T::E, T::E, T::E, T::E, T::E, T::E };
 			m_moves.push(empty);
 		}
 
-		void updateGui(Context& context, px::ApiUpdateGui& api) override
+		void updateGui(px::ApiUpdateGui& api) override
 		{
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -41,7 +41,7 @@ namespace Scenes
 			ImGui::End();
 		}
 
-		void update(Context& context, px::ApiUpdate& api) override
+		void update(px::ApiUpdate& api) override
 		{
 			if (m_timer > 0)
 			{
@@ -101,7 +101,7 @@ namespace Scenes
 			}
 		}
 
-		void draw(const Context& context, px::ApiDraw& api) const override
+		void draw(px::ApiDraw& api) const override
 		{
 			for (int32_t y = 0; y < 3; ++y) for (int32_t x = 0; x < 3; ++x)
 			{

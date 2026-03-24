@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../World/Map.hpp"
+#include "../World/IdMap.hpp"
 #include "TileTextureManager.hpp"
 #include "AssetManager.hpp"
 
@@ -10,7 +10,7 @@ namespace px
 	{
 	public:
 
-		DrawMap(const Map& map, const TileTextureManager& tileTextures, const AssetManager& assets) :
+		DrawMap(const IdMap& map, const TileTextureManager& tileTextures, const AssetManager& assets) :
 			m_map(map),
 			m_tileTextures(tileTextures),
 			m_assets(assets) {}
@@ -32,7 +32,7 @@ namespace px
 
 	private:
 
-		const Map& m_map;
+		const IdMap& m_map;
 		const TileTextureManager& m_tileTextures;
 		const AssetManager& m_assets;
 	};

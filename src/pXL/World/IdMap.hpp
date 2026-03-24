@@ -11,11 +11,11 @@
 
 namespace px
 {
-	class Map
+	class IdMap
 	{
 	public:
 
-		Map(sf::Vector2u size) :
+		IdMap(sf::Vector2u size) :
 			m_tiles(size.x* size.y, {}),
 			m_size(size) {}
 

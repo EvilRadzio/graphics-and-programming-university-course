@@ -15,9 +15,7 @@ namespace px
 		TileTextureManager(const AssetManager& assetManager)
 			: m_assetManager(assetManager) {}
 
-		~TileTextureManager() = default;
-
-		void setTileTexture(const TileHandle tileHandle, const std::string& texturePath)
+		void set(const TileHandle tileHandle, const std::string& texturePath)
 		{
 			m_tileTextures.insert(std::pair{
 				tileHandle.id,

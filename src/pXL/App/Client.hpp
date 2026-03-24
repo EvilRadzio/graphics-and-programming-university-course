@@ -62,14 +62,14 @@ namespace px
 
 				ImGui::SFML::Update(m_window, realDt);
 
-				m_scenes.updateGui(m_context, updateGuiApi);
+				m_scenes.updateGui(updateGuiApi);
 
 				ApiUpdate updateApi{
 					m_window,
 					k_fixedDt
 				};
 
-				m_scenes.update(m_context, updateApi);
+				m_scenes.update(updateApi);
 
 				m_window.clear(sf::Color::Black);
 
@@ -81,7 +81,7 @@ namespace px
 					m_font
 				};
 
-				m_scenes.draw(m_context, drawApi);
+				m_scenes.draw(drawApi);
 
 				ImGui::SFML::Render(m_window);
 

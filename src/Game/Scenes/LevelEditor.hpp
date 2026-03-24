@@ -7,14 +7,14 @@ namespace Scenes
 	class LevelEditor : public Scene
 	{
 	private:
-		px::Map LE_map;
+		px::IdMap LE_map;
 		int currentTile = 0;
 	public:
 			
-		LevelEditor(px::ApiScene api) : Scene(api), LE_map(sf::Vector2u(25, 25)) {}
+		LevelEditor(px::ApiScene api, Context& ctx) : Scene(api, ctx), LE_map(sf::Vector2u(25, 25)) {}
 
-		void updateGui(Context& context, px::ApiUpdateGui& api) override;
-		void update(Context& context, px::ApiUpdate& api) override;
-		void draw(const Context& context, px::ApiDraw& api) const override;
+		void updateGui(px::ApiUpdateGui& api) override;
+		void update(px::ApiUpdate& api) override;
+		void draw(px::ApiDraw& api) const override;
 	};
 }

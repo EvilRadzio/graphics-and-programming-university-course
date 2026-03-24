@@ -2,7 +2,7 @@
 
 
 
-void Scenes::LevelEditor::updateGui(Context& context, px::ApiUpdateGui& api)
+void Scenes::LevelEditor::updateGui(px::ApiUpdateGui& api)
 {
 	if (ImGui::Begin("Editor Menu"))
 	{
@@ -16,7 +16,7 @@ void Scenes::LevelEditor::updateGui(Context& context, px::ApiUpdateGui& api)
 	ImGui::End();
 }
 
-void Scenes::LevelEditor::update(Context& context, px::ApiUpdate& api)
+void Scenes::LevelEditor::update(px::ApiUpdate& api)
 {
 	sf::Rect<int> rect{
 		sf::Vector2i(0,0), sf::Vector2i(28,28)
@@ -38,7 +38,7 @@ void Scenes::LevelEditor::update(Context& context, px::ApiUpdate& api)
 	}
 }
 //vector tilehandle
-void Scenes::LevelEditor::draw(const Context& context, px::ApiDraw& api) const
+void Scenes::LevelEditor::draw(px::ApiDraw& api) const
 {
 	//px::DrawMap map(LE_map, api.tileTextures, sceneApi.tiles);
 
