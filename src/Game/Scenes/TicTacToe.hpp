@@ -19,30 +19,29 @@ namespace Scenes
 			m_moves.push(empty);
 		}
 
-		void updateGui(px::ApiUpdateGui& api) override
-		{
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-			ImGui::SetNextWindowPos(viewport->Pos);
-			ImGui::SetNextWindowSize(viewport->Size);
-
-			if (ImGui::Begin("##Menu", nullptr,
-				ImGuiWindowFlags_NoDecoration |
-				ImGuiWindowFlags_NoMove |
-				ImGuiWindowFlags_NoResize |
-				ImGuiWindowFlags_NoSavedSettings |
-				ImGuiWindowFlags_NoBackground))
-			{
-				if (ImGui::Button("Go back"))
-				{
-					popScene();
-				}
-			}
-			ImGui::End();
-		}
-
 		void update(px::ApiUpdate& api) override
 		{
+			{
+				ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+				ImGui::SetNextWindowPos(viewport->Pos);
+				ImGui::SetNextWindowSize(viewport->Size);
+
+				if (ImGui::Begin("##Menu", nullptr,
+					ImGuiWindowFlags_NoDecoration |
+					ImGuiWindowFlags_NoMove |
+					ImGuiWindowFlags_NoResize |
+					ImGuiWindowFlags_NoSavedSettings |
+					ImGuiWindowFlags_NoBackground))
+				{
+					if (ImGui::Button("Go back"))
+					{
+						popScene();
+					}
+				}
+				ImGui::End();
+			}
+
 			if (m_timer > 0)
 			{
 				--m_timer;
@@ -120,10 +119,10 @@ namespace Scenes
 				switch (m_moves.top()[y * 3 + x])
 				{
 				case T::X:
-					rect.setTexture(&api.assets.texture("tictactoe/x"));
+					rect.setTexture(&api.assets.textures.get("tictactoe/x"));
 					break;
 				case T::O:
-					rect.setTexture(&api.assets.texture("tictactoe/o"));
+					rect.setTexture(&api.assets.textures.get("tictactoe/o"));
 					break;
 				}
 
@@ -135,7 +134,7 @@ namespace Scenes
 				return;
 			}
 
-			sf::Text winText(api.font, std::string("The winner is the ")
+			sf::Text winText(api.assets.font, std::string("The winner is the ")
 				+ (m_winner == T::O ? "Circle" : "X"));
 
 			winText.setOrigin(static_cast<sf::Vector2f>(winText.getLocalBounds().size) / 2.0f);

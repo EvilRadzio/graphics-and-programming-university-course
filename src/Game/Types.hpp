@@ -10,6 +10,7 @@ struct Internal
 {
 	using Context = Context;
 	using SceneId = SceneId;
+	using ScenePayload = int;
 };
 
 using Scene = px::Scene<Internal>;

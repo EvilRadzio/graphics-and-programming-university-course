@@ -22,13 +22,6 @@ namespace px
 		void popScene() { assert(!m_scenes.empty());  m_scenes.pop(); }
 		bool empty() { return m_scenes.empty(); }
 
-		void updateGui(ApiUpdateGui& api)
-		{
-			assert(!m_scenes.empty());
-
-			m_scenes.top()->updateGui(api);
-		}
-
 		void update(ApiUpdate& api)
 		{
 			if (m_scenes.top()->m_push)

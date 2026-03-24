@@ -6,7 +6,6 @@
 #include "ApiDraw.hpp"
 #include "ApiScene.hpp"
 #include "ApiUpdate.hpp"
-#include "ApiUpdateGui.hpp"
 
 namespace sf
 {
@@ -28,7 +27,6 @@ namespace px
 		Scene(const ApiScene& api, typename I::Context& ctx) : sceneApi(api), ctx(ctx) {}
 		virtual ~Scene() = default;
 
-		virtual void updateGui(ApiUpdateGui& api) = 0;
 		virtual void update(ApiUpdate& api) = 0;
 		virtual void draw(ApiDraw& api) const = 0;
 

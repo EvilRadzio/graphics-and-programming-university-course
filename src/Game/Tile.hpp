@@ -11,4 +11,5 @@ struct Tile
 
 	Type type{};
 	std::string texture{};
+	std::string tileName{};
 };

@@ -39,38 +39,32 @@ Scenes::Platforming::Platforming(px::ApiScene api, Context& ctx) :
 	m_entities.add<Controllable>(player);
 }
 
-void Scenes::Platforming::updateGui(px::ApiUpdateGui& api)
-{
-	ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-	ImGui::SetNextWindowPos(viewport->Pos);
-	ImGui::SetNextWindowSize(viewport->Size);
-
-	if (ImGui::Begin("##Menu", nullptr,
-		ImGuiWindowFlags_NoDecoration |
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoSavedSettings |
-		ImGuiWindowFlags_NoBackground))
-	{
-		if (ImGui::Button("Go back"))
-		{
-			popScene();
-		}
-	}
-	ImGui::End();
-}
-
 void Scenes::Platforming::update(px::ApiUpdate& api)
 {
+	{
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+		ImGui::SetNextWindowPos(viewport->Pos);
+		ImGui::SetNextWindowSize(viewport->Size);
+
+		if (ImGui::Begin("##Menu", nullptr,
+			ImGuiWindowFlags_NoDecoration |
+			ImGuiWindowFlags_NoMove |
+			ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_NoBackground))
+		{
+			if (ImGui::Button("Go back"))
+			{
+				popScene();
+			}
+		}
+		ImGui::End();
+	}
+
 	playerControlSystem(api);
 
 	movementAndColisionSystem(api);
-
-	for (auto [e, _] : m_entities.view<Controllable>())
-	{
-		m_cam.position = m_entities.get<Transform>(e).pos;
-	}
 
 	m_entities.despawn();
 }
@@ -98,7 +92,7 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 		if (m_map.at(position).texture != "")
 		{
 			tileRect.setPosition(static_cast<sf::Vector2f>(position * tileSide));
-			tileRect.setTexture(&api.assets.texture(m_map.at(position).texture));
+			tileRect.setTexture(&api.assets.textures.get(m_map.at(position).texture));
 
 			api.window.draw(tileRect);
 		}
@@ -108,7 +102,7 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 	{
 		sf::RectangleShape playerRect(sf::Vector2f(tileSide, tileSide));
 		playerRect.setOrigin(sf::Vector2f(tileSide / 2, tileSide / 2));
-		playerRect.setTexture(&api.assets.texture("player"));
+		playerRect.setTexture(&api.assets.textures.get("player"));
 		playerRect.setPosition(m_entities.get<Transform>(entity).pos * static_cast<float>(tileSide));
 
 		api.window.draw(playerRect);

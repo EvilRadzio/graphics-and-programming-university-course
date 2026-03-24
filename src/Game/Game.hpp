@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include "pXL/pXL.hpp"
 
 #include "Types.hpp"
@@ -18,7 +20,7 @@ public:
 				return;
 			}
 
-			m_assets.add(std::move(texture), name);
+			assets.textures.set(std::move(texture), name);
 
 			std::cout << "Loaded: " << name << std::endl;
 		});
@@ -29,9 +31,9 @@ public:
 		m_scenes.registerScene(SceneId::Platforming, [&]() { return std::make_unique<Scenes::Platforming>(buildSceneApi(), m_context); });
 		m_scenes.pushScene(SceneId::MainMenu);
 
-		m_context.tiles["empty"] = Tile{};
-		m_context.tiles["solid_block"] = Tile{ Tile::Type::Solid, "solid_block" };
+		m_context.tiles["empty"] = Tile{Tile::Type::Air, "", "empty"};
+		m_context.tiles["solid_block"] = Tile{ Tile::Type::Solid, "solid_block", "solid_block"};
 
-		m_font = sf::Font("resources/Butterpop.otf");
+		assets.font = sf::Font("resources/Butterpop.otf");
 	}
 };

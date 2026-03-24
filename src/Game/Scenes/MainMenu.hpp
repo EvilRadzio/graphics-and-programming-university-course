@@ -10,7 +10,7 @@ namespace Scenes
 
 		MainMenu(px::ApiScene api, Context& ctx) : Scene(api, ctx) {}
 
-		void updateGui(px::ApiUpdateGui& api) override
+		void update(px::ApiUpdate& api) override
 		{
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -44,17 +44,12 @@ namespace Scenes
 			ImGui::End();
 		}
 
-		void update(px::ApiUpdate& api) override
-		{
-
-		}
-
 		void draw(px::ApiDraw& api) const override
 		{
 			api.window.clear(sf::Color(0x222222ff));
 
 			sf::RectangleShape mikuShape(static_cast<sf::Vector2f>(api.window.getSize()));
-			mikuShape.setTexture(&api.assets.texture("player"));
+			mikuShape.setTexture(&api.assets.textures.get("player"));
 
 			api.window.draw(mikuShape);
 		}

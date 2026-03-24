@@ -8,7 +8,6 @@
 #include <imgui.h>
 
 #include "SceneManager.hpp"
-#include "pXL/Resources/TextureManager.hpp"
 #include "InputRaw.hpp"
 
 namespace px
@@ -19,8 +18,7 @@ namespace px
 	public:
 
 		Client() :
-			m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game", sf::Style::Close),
-			m_tileTextures(m_assets)
+			m_window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game", sf::Style::Close)
 		{
 			m_window.setKeyRepeatEnabled(false);
 			ImGui::SFML::Init(m_window);
@@ -56,13 +54,7 @@ namespace px
 
 				sf::Time realDt = m_clock.restart();
 
-				ApiUpdateGui updateGuiApi
-				{
-				};
-
 				ImGui::SFML::Update(m_window, realDt);
-
-				m_scenes.updateGui(updateGuiApi);
 
 				ApiUpdate updateApi{
 					m_window,
@@ -75,10 +67,7 @@ namespace px
 
 				ApiDraw drawApi{
 					m_window,
-					m_assets,
-					m_tiles,
-					m_tileTextures,
-					m_font
+					assets
 				};
 
 				m_scenes.draw(drawApi);
@@ -94,19 +83,15 @@ namespace px
 		ApiScene buildSceneApi()
 		{
 			return ApiScene{
-				m_input,
-				m_tiles
+				m_input
 			};
 		}
 
 		typename I::Context m_context;
-		AssetManager m_assets;
+		Assets assets;
 		sf::RenderWindow m_window;
 		SceneManager<I> m_scenes;
-		TileTextureManager m_tileTextures;
-		TileManager m_tiles;
 		InputRaw m_input;
-		sf::Font m_font;
 
 	private:
 

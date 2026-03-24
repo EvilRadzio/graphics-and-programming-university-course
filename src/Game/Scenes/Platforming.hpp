@@ -10,7 +10,6 @@ namespace Scenes
 
 		Platforming(px::ApiScene api, Context& ctx);
 
-		void updateGui(px::ApiUpdateGui& api) override;
 		void update(px::ApiUpdate& api) override;
 		void draw(px::ApiDraw& api) const override;
 
@@ -53,7 +52,5 @@ namespace Scenes
 		static constexpr uint8_t k_actions = static_cast<uint8_t>(Action::Right) + 1;
 
 		px::InputMapping<Action, k_actions> m_input;
-
-		px::Camera m_cam;
 	};
 }
