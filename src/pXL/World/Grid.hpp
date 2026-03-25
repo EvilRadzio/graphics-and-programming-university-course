@@ -33,6 +33,19 @@ namespace px
 			return m_flat[m_size.x * position.y + position.x];
 		}
 
+		bool withinBounds(sf::Vector2u position) const
+		{
+			return position.x < m_size.x && position.y < m_size.y;
+		}
+
+		bool validRectangle(sf::Rect<uint32_t> rect) const
+		{
+			return rect.position.x <= m_size.x &&
+				rect.position.y <= m_size.y &&
+				rect.size.x <= m_size.x - rect.position.x &&
+				rect.size.y <= m_size.y - rect.position.y;
+		}
+
 		void resize(const sf::Vector2u size)
 		{
 			if (size == m_size) return;
@@ -65,6 +78,25 @@ namespace px
 			}
 		}
 
+		void clear(sf::Rect<uint32_t> rectangle)
+		{
+			fill(rectangle, m_base);
+		}
+
+		void paste(sf::Vector2u position, const Grid& grid)
+		{
+			sf::Rect<uint32_t> pasteRectangle(position, position + grid.m_size);
+			assert(validRectangle(pasteRectangle));
+
+			for (size_t y = position.y; y < pasteRectangle.size.y; ++y)
+			{
+				for (size_t x = position.x; x < pasteRectangle.size.x; ++x)
+				{
+					m_flat[m_size.x * (y + position.y) + (x + position.x)] = grid.m_flat[m_size.x * y + x];
+				}
+			}
+		}
+
 		Grid copy(sf::Rect<uint32_t> rectangle) const
 		{
 			sf::Vector2u end = rectangle.position + rectangle.size;
@@ -92,19 +124,6 @@ namespace px
 		}
 
 	private:
-
-		bool withinBounds(sf::Vector2u position) const
-		{
-			return position.x < m_size.x && position.y < m_size.y;
-		}
-
-		bool validRectangle(sf::Rect<uint32_t> rect) const
-		{
-			return rect.position.x <= m_size.x &&
-				rect.position.y <= m_size.y &&
-				rect.size.x <= m_size.x - rect.position.x &&
-				rect.size.y <= m_size.y - rect.position.y;
-		}
 
 		std::vector<T> m_flat;
 		sf::Vector2u m_size;

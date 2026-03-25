@@ -21,6 +21,7 @@ namespace px
 			window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game", sf::Style::Close)
 		{
 			window.setKeyRepeatEnabled(false);
+			window.setFramerateLimit(60);
 			ImGui::SFML::Init(window);
 			ImGui::GetIO().FontGlobalScale = 2.0f;
 		};
@@ -30,11 +31,16 @@ namespace px
 			ImGui::SFML::Shutdown();
 		}
 
+		virtual void preUpdate(){}
+		virtual void postUpdate(){}
+		virtual void preDraw(){}
+		virtual void postDraw(){}
+
 		void run()
 		{
-			window.setFramerateLimit(60);
+			sf::Clock clock;
 
-			m_clock.restart();
+			clock.restart();
 
 			while (window.isOpen())
 			{
@@ -52,7 +58,7 @@ namespace px
 					}
 				}
 
-				sf::Time realDt = m_clock.restart();
+				sf::Time realDt = clock.restart();
 
 				ImGui::SFML::Update(window, realDt);
 
@@ -61,7 +67,13 @@ namespace px
 					k_fixedDt
 				};
 
+				preUpdate();
+
 				scenes.update(updateApi);
+
+				postUpdate();
+
+				preDraw();
 
 				window.clear(sf::Color::Black);
 
@@ -75,6 +87,8 @@ namespace px
 				ImGui::SFML::Render(window);
 
 				window.display();
+
+				postDraw();
 			}
 		}
 
@@ -97,9 +111,5 @@ namespace px
 
 		static constexpr uint32_t k_tps{ 60 };
 		static constexpr sf::Time k_fixedDt = std::chrono::microseconds(1000000 / k_tps);
-		static constexpr sf::Time k_maxAccumulated{ std::chrono::milliseconds(200) };
-		
-		sf::Clock m_clock;
-		sf::Time m_accumulated;
 	};
 }
