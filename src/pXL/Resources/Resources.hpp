@@ -4,3 +4,4 @@
 #include "../World/World.hpp"
 
 #include "Assets.hpp"
+#include "TileSprite.hpp"
