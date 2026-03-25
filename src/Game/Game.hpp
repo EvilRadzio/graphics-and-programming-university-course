@@ -34,6 +34,8 @@ public:
 		ctx.tiles["empty"] = Tile{Tile::Type::Air, "", "empty"};
 		ctx.tiles["solid_block"] = Tile{ Tile::Type::Solid, "solid_block", "solid_block"};
 
+		assets.tileSprites.set(px::TileSprite{"tiles/moss_on_cobble_tileset"}, "solid_block");
+
 		assets.font = sf::Font("resources/Butterpop.otf");
 	}
 };

@@ -14,6 +14,10 @@ namespace px
 	{
 	public:
 
+		Manager() = default;
+		Manager(const Manager&) = delete;
+		Manager& operator=(const Manager&) = delete;
+
 		class Handle
 		{
 			size_t id;

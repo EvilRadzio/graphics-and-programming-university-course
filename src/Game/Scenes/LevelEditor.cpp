@@ -140,20 +140,27 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 
 void Scenes::LevelEditor::draw(px::ApiDraw& api) const
 {
-
-	sf::RectangleShape tileRect(static_cast<sf::Vector2f>(api.window.getSize()) / 25.0f);
 	uint32_t tileSide = 720 / LE_map.size().x;
 
 	for (size_t y = 0; y < LE_map.size().y; ++y) for (size_t x = 0; x < LE_map.size().x; ++x)
 	{
 		sf::Vector2u position(x, y);
-		if (LE_map.at(position).texture != "")
+		if (LE_map.at(position).sprite != "")
 		{
-			tileRect.setPosition(static_cast<sf::Vector2f>(position * tileSide));
-			tileRect.setTexture(&api.assets.textures.get(LE_map.at(position).texture));
+			auto sprite(api.assets.tileSprites.get(LE_map.at(position).sprite).get(0, api.assets.textures));
 
-			api.window.draw(tileRect);
+			sprite.setPosition(sf::Vector2f{
+				static_cast<float>(x * tileSide),
+				static_cast<float>(y * tileSide)
+			});
+
+			auto bounds = sprite.getLocalBounds();
+			sprite.setScale(sf::Vector2f{
+				static_cast<float>(tileSide) / bounds.size.x,
+				static_cast<float>(tileSide) / bounds.size.y
+			});
+
+			api.window.draw(sprite);
 		}
-	}	
-
+	}
 }

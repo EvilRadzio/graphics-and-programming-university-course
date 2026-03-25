@@ -10,6 +10,6 @@ struct Tile
 	};
 
 	Type type{};
-	std::string texture{};
+	std::string sprite{};
 	std::string tileName{};
 };

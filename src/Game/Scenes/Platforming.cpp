@@ -22,11 +22,11 @@ Scenes::Platforming::Platforming(px::ApiScene api, Context& ctx) :
 		}
 	}
 
-	m_map.at({ 7, 7 }) = ctx.tiles["solid_block"];
-	m_map.at({ 4, 3 }) = ctx.tiles["solid_block"];
-	m_map.at({ 6, 7 }) = ctx.tiles["solid_block"];
-	m_map.at({ 2, 5 }) = ctx.tiles["solid_block"];
-	m_map.at({ 5, 4 }) = ctx.tiles["solid_block"];
+	m_map.at({ 7, 7 }) = ctx.tiles.at("solid_block");
+	m_map.at({ 4, 3 }) = ctx.tiles.at("solid_block");
+	m_map.at({ 6, 7 }) = ctx.tiles.at("solid_block");
+	m_map.at({ 2, 5 }) = ctx.tiles.at("solid_block");
+	m_map.at({ 5, 4 }) = ctx.tiles.at("solid_block");
 
 	auto player = m_entities.spawn();
 	m_entities.add<Transform>(player, sf::Vector2f(3.5f, 3.5f), sf::Vector2f(0.0f, 0.0f));
@@ -83,18 +83,39 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 		api.window.setView(view);
 	}
 
-	sf::RectangleShape tileRect(static_cast<sf::Vector2f>(api.window.getSize()) / 10.0f);
-	uint32_t tileSide = 720 / m_map.size().x;
+	sf::Vector2u size = m_map.size();
+	uint32_t tileSide = 720 / size.x;
 
-	for (size_t y = 0; y < m_map.size().y; ++y) for (size_t x = 0; x < m_map.size().x; ++x)
+	for (size_t y = 0; y < size.y; ++y) for (size_t x = 0; x < size.x; ++x)
 	{
 		sf::Vector2u position(x, y);
-		if (m_map.at(position).texture != "")
-		{
-			tileRect.setPosition(static_cast<sf::Vector2f>(position * tileSide));
-			tileRect.setTexture(&api.assets.textures.get(m_map.at(position).texture));
 
-			api.window.draw(tileRect);
+		uint8_t adjacent{};
+		sf::Vector2u testPosition{ position.x, position.y - 1 };
+		adjacent += 1 * (m_map.withinBounds(testPosition) && m_map.at(testPosition).tileName == m_map.at(position).tileName);
+		testPosition = { position.x + 1, position.y};
+		adjacent += 2 * (m_map.withinBounds(testPosition) && m_map.at(testPosition).tileName == m_map.at(position).tileName);
+		testPosition = { position.x, position.y + 1 };
+		adjacent += 4 * (m_map.withinBounds(testPosition) && m_map.at(testPosition).tileName == m_map.at(position).tileName);
+		testPosition = { position.x - 1, position.y };
+		adjacent += 8 * (m_map.withinBounds(testPosition) && m_map.at(testPosition).tileName == m_map.at(position).tileName);
+
+		if (m_map.at(position).sprite != "")
+		{
+			auto sprite(api.assets.tileSprites.get(m_map.at(position).sprite).get(adjacent, api.assets.textures));
+
+			sprite.setPosition(sf::Vector2f{
+				static_cast<float>(x * tileSide),
+				static_cast<float>(y * tileSide)
+			});
+
+			auto bounds = sprite.getLocalBounds();
+			sprite.setScale(sf::Vector2f{
+				static_cast<float>(tileSide) / bounds.size.x,
+				static_cast<float>(tileSide) / bounds.size.y
+			});
+
+			api.window.draw(sprite);
 		}
 	}
 
