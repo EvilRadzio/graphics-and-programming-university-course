@@ -8,11 +8,10 @@ namespace Scenes
 	{
 	public:
 
-		Platforming(px::ApiScene api);
+		Platforming(px::ApiScene api, Context& ctx);
 
-		void updateGui(Context& context, px::ApiUpdateGui& api) override;
-		void update(Context& context, px::ApiUpdate& api) override;
-		void draw(const Context& context, px::ApiDraw& api) const override;
+		void update(px::ApiUpdate& api) override;
+		void draw(px::ApiDraw& api) const override;
 
 	private:
 
@@ -44,7 +43,7 @@ namespace Scenes
 			Controllable
 		> m_entities;
 
-		px::Map m_map;
+		px::Grid<Tile> m_map;
 
 		enum class Action : uint8_t
 		{
@@ -53,7 +52,5 @@ namespace Scenes
 		static constexpr uint8_t k_actions = static_cast<uint8_t>(Action::Right) + 1;
 
 		px::InputMapping<Action, k_actions> m_input;
-
-		px::Camera m_cam;
 	};
 }

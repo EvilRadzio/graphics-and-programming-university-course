@@ -11,7 +11,7 @@
 namespace px
 {
 	template <Internal I>
-	class SceneManager
+	class SceneStack
 	{
 	public:
 
@@ -22,14 +22,7 @@ namespace px
 		void popScene() { assert(!m_scenes.empty());  m_scenes.pop(); }
 		bool empty() { return m_scenes.empty(); }
 
-		void updateGui(typename I::Context& context, ApiUpdateGui& api)
-		{
-			assert(!m_scenes.empty());
-
-			m_scenes.top()->updateGui(context, api);
-		}
-
-		void update(typename I::Context& context, ApiUpdate& api)
+		void update(ApiUpdate& api)
 		{
 			if (m_scenes.top()->m_push)
 			{
@@ -44,14 +37,14 @@ namespace px
 
 			assert(!m_scenes.empty());
 
-			m_scenes.top()->update(context, api);
+			m_scenes.top()->update(api);
 		}
 
-		void draw(const typename I::Context& context, ApiDraw& api) const
+		void draw(ApiDraw& api) const
 		{
 			assert(!m_scenes.empty());
 			
-			m_scenes.top()->draw(context, api);
+			m_scenes.top()->draw(api);
 		}
 
 	private:

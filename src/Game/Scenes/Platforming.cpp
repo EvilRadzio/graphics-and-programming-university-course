@@ -2,28 +2,31 @@
 
 #include "Platforming.hpp"
 
-Scenes::Platforming::Platforming(px::ApiScene api) :
-	Scene(api),
-	m_map(api.tiles.emptyHandle(), 10, 10),
+Scenes::Platforming::Platforming(px::ApiScene api, Context& ctx) :
+	Scene(api, ctx),
+	m_map(sf::Vector2u(10, 10), ctx.tiles["empty"]),
 	m_input(api.input)
 {
 	m_input.set(Action::Jump, sf::Keyboard::Scancode::Space);
 	m_input.set(Action::Left, sf::Keyboard::Scancode::A);
 	m_input.set(Action::Right, sf::Keyboard::Scancode::D);
 
-	for (size_t y = 0; y < m_map.height(); ++y) for (size_t x = 0; x < m_map.width(); ++x)
+	for (uint32_t y = 0; y < m_map.size().y; ++y)
 	{
-		if (x == 0 || x == m_map.width() - 1 || y == 0 || y == m_map.height() - 1)
+		for (uint32_t x = 0; x < m_map.size().x; ++x)
 		{
-			m_map.set(sf::Vector2u(x, y), sceneApi.tiles.handle("solid_block"));
+			if (x == 0 || x == m_map.size().x - 1 || y == 0 || y == m_map.size().y - 1)
+			{
+				m_map.at({ x, y }) = ctx.tiles["solid_block"];
+			}
 		}
 	}
 
-	m_map.set(sf::Vector2u(7, 7), sceneApi.tiles.handle("solid_block"));
-	m_map.set(sf::Vector2u(4, 3), sceneApi.tiles.handle("solid_block"));
-	m_map.set(sf::Vector2u(6, 7), sceneApi.tiles.handle("solid_block"));
-	m_map.set(sf::Vector2u(2, 5), sceneApi.tiles.handle("solid_block"));
-	m_map.set(sf::Vector2u(5, 4), sceneApi.tiles.handle("solid_block"));
+	m_map.at({ 7, 7 }) = ctx.tiles["solid_block"];
+	m_map.at({ 4, 3 }) = ctx.tiles["solid_block"];
+	m_map.at({ 6, 7 }) = ctx.tiles["solid_block"];
+	m_map.at({ 2, 5 }) = ctx.tiles["solid_block"];
+	m_map.at({ 5, 4 }) = ctx.tiles["solid_block"];
 
 	auto player = m_entities.spawn();
 	m_entities.add<Transform>(player, sf::Vector2f(3.5f, 3.5f), sf::Vector2f(0.0f, 0.0f));
@@ -36,57 +39,60 @@ Scenes::Platforming::Platforming(px::ApiScene api) :
 	m_entities.add<Controllable>(player);
 }
 
-void Scenes::Platforming::updateGui(Context& context, px::ApiUpdateGui& api)
+void Scenes::Platforming::update(px::ApiUpdate& api)
 {
-	ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-	ImGui::SetNextWindowPos(viewport->Pos);
-	ImGui::SetNextWindowSize(viewport->Size);
-
-	if (ImGui::Begin("##Menu", nullptr,
-		ImGuiWindowFlags_NoDecoration |
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoSavedSettings |
-		ImGuiWindowFlags_NoBackground))
 	{
-		if (ImGui::Button("Go back"))
-		{
-			popScene();
-		}
-	}
-	ImGui::End();
-}
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-void Scenes::Platforming::update(Context& context, px::ApiUpdate& api)
-{
+		ImGui::SetNextWindowPos(viewport->Pos);
+		ImGui::SetNextWindowSize(viewport->Size);
+
+		if (ImGui::Begin("##Menu", nullptr,
+			ImGuiWindowFlags_NoDecoration |
+			ImGuiWindowFlags_NoMove |
+			ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_NoBackground))
+		{
+			if (ImGui::Button("Go back"))
+			{
+				popScene();
+			}
+		}
+		ImGui::End();
+	}
+
 	playerControlSystem(api);
 
 	movementAndColisionSystem(api);
 
-	for (auto [e, _] : m_entities.view<Controllable>())
-	{
-		m_cam.position = m_entities.get<Transform>(e).pos;
-	}
-
 	m_entities.despawn();
 }
 
-void Scenes::Platforming::draw(const Context& context, px::ApiDraw& api) const
+void Scenes::Platforming::draw(px::ApiDraw& api) const
 {
-	api.window.setView(m_cam.view(api.window, api.window.getSize().x / 10.0f));
+	for (auto [e, _] : m_entities.view<Controllable>())
+	{
+		const auto& position = m_entities.get<Transform>(e).pos;
+
+		sf::View view(
+			position * static_cast<float>(api.window.getSize().x / 10.0f),
+			static_cast<sf::Vector2f>(api.window.getSize())
+		);
+
+		api.window.setView(view);
+	}
 
 	sf::RectangleShape tileRect(static_cast<sf::Vector2f>(api.window.getSize()) / 10.0f);
-	uint32_t tileSide = 720 / m_map.width();
+	uint32_t tileSide = 720 / m_map.size().x;
 
-	for (size_t y = 0; y < m_map.height(); ++y) for (size_t x = 0; x < m_map.width(); ++x)
+	for (size_t y = 0; y < m_map.size().y; ++y) for (size_t x = 0; x < m_map.size().x; ++x)
 	{
 		sf::Vector2u position(x, y);
-		px::TileHandle handle = m_map.at(position);
-		if (api.tileTextures.hasTexture(handle))
+		if (m_map.at(position).texture != "")
 		{
 			tileRect.setPosition(static_cast<sf::Vector2f>(position * tileSide));
-			tileRect.setTexture(&api.textures.texture(api.tileTextures.handle(handle)));
+			tileRect.setTexture(&api.assets.textures.get(m_map.at(position).texture));
 
 			api.window.draw(tileRect);
 		}
@@ -96,7 +102,7 @@ void Scenes::Platforming::draw(const Context& context, px::ApiDraw& api) const
 	{
 		sf::RectangleShape playerRect(sf::Vector2f(tileSide, tileSide));
 		playerRect.setOrigin(sf::Vector2f(tileSide / 2, tileSide / 2));
-		playerRect.setTexture(&api.textures.texture("player"));
+		playerRect.setTexture(&api.assets.textures.get("player"));
 		playerRect.setPosition(m_entities.get<Transform>(entity).pos * static_cast<float>(tileSide));
 
 		api.window.draw(playerRect);
@@ -182,7 +188,7 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 			{
 				for (size_t y = minY; y <= maxY; ++y)
 				{
-					if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(currentX - 1e-3f, y))).type != px::TileType::air)
+					if (m_map.at(sf::Vector2u(currentX - 1e-3f, y)).type != Tile::Type::Air)
 					{
 						colided = true;
 						break;
@@ -207,7 +213,7 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 			{
 				for (size_t y = minY; y <= maxY; ++y)
 				{
-					if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(currentX + 1e-3f, y))).type != px::TileType::air)
+					if (m_map.at(sf::Vector2u(currentX + 1e-3f, y)).type != Tile::Type::Air)
 					{
 						colided = true;
 						break;
@@ -241,7 +247,7 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 			{
 				for (size_t x = minX; x <= maxX; ++x)
 				{
-					if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(x, currentY - 1e-3f))).type != px::TileType::air)
+					if (m_map.at(sf::Vector2u(x, currentY - 1e-3f)).type != Tile::Type::Air)
 					{
 						colided = true;
 						break;
@@ -270,8 +276,7 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 			{
 				for (size_t x = minX; x <= maxX; ++x)
 				{
-					;
-					if (sceneApi.tiles.tile(m_map.at(sf::Vector2u(x, currentY + 1e-3f))).type != px::TileType::air)
+					if (m_map.at(sf::Vector2u(x, currentY + 1e-3f)).type != Tile::Type::Air)
 					{
 						colided = true;
 						break;

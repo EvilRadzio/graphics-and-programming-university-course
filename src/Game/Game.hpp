@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include "pXL/pXL.hpp"
 
 #include "Types.hpp"
@@ -11,17 +13,27 @@ public:
 
 	Game()
 	{
-		px::Load::texturesRecursive(m_textures, "resources/textures");
+		px::Load::recursive("resources/textures", [&](const auto& path, const auto& name) {
+			sf::Texture texture;
+			if (!texture.loadFromFile(path))
+			{
+				return;
+			}
 
-		m_scenes.registerScene(SceneId::MainMenu, [&]() { return std::make_unique<Scenes::MainMenu>(buildSceneApi()); });
-		m_scenes.registerScene(SceneId::TicTacToe, [&]() { return std::make_unique<Scenes::TicTacToe>(buildSceneApi()); });
-		m_scenes.registerScene(SceneId::LevelEditor, [&]() { return std::make_unique<Scenes::LevelEditor>(buildSceneApi()); });
-		m_scenes.registerScene(SceneId::Platforming, [&]() { return std::make_unique<Scenes::Platforming>(buildSceneApi()); });
-		m_scenes.pushScene(SceneId::MainMenu);
+			assets.textures.set(std::move(texture), name);
 
-		px::Tile someTile(px::TileType::solid);
-		m_tileTextures.setTileTexture(m_tiles.add(someTile, "solid_block"), "solid_block");
+			std::cout << "Loaded: " << name << std::endl;
+		});
 
-		m_font = sf::Font("resources/Butterpop.otf");
+		scenes.registerScene(SceneId::MainMenu, [&]() { return std::make_unique<Scenes::MainMenu>(buildSceneApi(), ctx); });
+		scenes.registerScene(SceneId::TicTacToe, [&]() { return std::make_unique<Scenes::TicTacToe>(buildSceneApi(), ctx); });
+		scenes.registerScene(SceneId::LevelEditor, [&]() { return std::make_unique<Scenes::LevelEditor>(buildSceneApi(), ctx); });
+		scenes.registerScene(SceneId::Platforming, [&]() { return std::make_unique<Scenes::Platforming>(buildSceneApi(), ctx); });
+		scenes.pushScene(SceneId::MainMenu);
+
+		ctx.tiles["empty"] = Tile{Tile::Type::Air, "", "empty"};
+		ctx.tiles["solid_block"] = Tile{ Tile::Type::Solid, "solid_block", "solid_block"};
+
+		assets.font = sf::Font("resources/Butterpop.otf");
 	}
 };

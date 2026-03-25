@@ -13,36 +13,35 @@ namespace Scenes
 
 		enum class T : uint8_t { E, X, O };
 
-		TicTacToe(px::ApiScene api) : Scene(api)
+		TicTacToe(px::ApiScene api, Context& ctx) : Scene(api, ctx)
 		{
 			std::array<T, 9> empty{ T::E, T::E, T::E, T::E, T::E, T::E, T::E, T::E, T::E };
 			m_moves.push(empty);
 		}
 
-		void updateGui(Context& context, px::ApiUpdateGui& api) override
+		void update(px::ApiUpdate& api) override
 		{
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-			ImGui::SetNextWindowPos(viewport->Pos);
-			ImGui::SetNextWindowSize(viewport->Size);
-
-			if (ImGui::Begin("##Menu", nullptr,
-				ImGuiWindowFlags_NoDecoration |
-				ImGuiWindowFlags_NoMove |
-				ImGuiWindowFlags_NoResize |
-				ImGuiWindowFlags_NoSavedSettings |
-				ImGuiWindowFlags_NoBackground))
 			{
-				if (ImGui::Button("Go back"))
-				{
-					popScene();
-				}
-			}
-			ImGui::End();
-		}
+				ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-		void update(Context& context, px::ApiUpdate& api) override
-		{
+				ImGui::SetNextWindowPos(viewport->Pos);
+				ImGui::SetNextWindowSize(viewport->Size);
+
+				if (ImGui::Begin("##Menu", nullptr,
+					ImGuiWindowFlags_NoDecoration |
+					ImGuiWindowFlags_NoMove |
+					ImGuiWindowFlags_NoResize |
+					ImGuiWindowFlags_NoSavedSettings |
+					ImGuiWindowFlags_NoBackground))
+				{
+					if (ImGui::Button("Go back"))
+					{
+						popScene();
+					}
+				}
+				ImGui::End();
+			}
+
 			if (m_timer > 0)
 			{
 				--m_timer;
@@ -101,7 +100,7 @@ namespace Scenes
 			}
 		}
 
-		void draw(const Context& context, px::ApiDraw& api) const override
+		void draw(px::ApiDraw& api) const override
 		{
 			for (int32_t y = 0; y < 3; ++y) for (int32_t x = 0; x < 3; ++x)
 			{
@@ -120,10 +119,10 @@ namespace Scenes
 				switch (m_moves.top()[y * 3 + x])
 				{
 				case T::X:
-					rect.setTexture(&api.textures.texture("tictactoe/x"));
+					rect.setTexture(&api.assets.textures.get("tictactoe/x"));
 					break;
 				case T::O:
-					rect.setTexture(&api.textures.texture("tictactoe/o"));
+					rect.setTexture(&api.assets.textures.get("tictactoe/o"));
 					break;
 				}
 
@@ -135,7 +134,7 @@ namespace Scenes
 				return;
 			}
 
-			sf::Text winText(api.font, std::string("The winner is the ")
+			sf::Text winText(api.assets.font, std::string("The winner is the ")
 				+ (m_winner == T::O ? "Circle" : "X"));
 
 			winText.setOrigin(static_cast<sf::Vector2f>(winText.getLocalBounds().size) / 2.0f);
