@@ -4,11 +4,14 @@
 
 Scenes::Platforming::Platforming(px::ApiScene api, Context& ctx) :
 	Scene(api, ctx),
-	m_playerSprite("player", sf::IntRect({-36, -36}, {72, 72}), api.assets.textures),
+	m_playerSprite("knight", sf::IntRect({-72, -90}, {144, 144}), api.assets.textures),
 	m_map(sf::Vector2u(10, 10), ctx.tiles["empty"]),
 	m_input(api.input)
 {
-	m_playerSprite.setState("idle", { {0, 0} });
+	m_playerSprite.setGridSize({ 8,8 });
+	m_playerSprite.setState("idle", { {0, 0}, {1, 0}, {2, 0}, {3, 0} });
+	m_playerSprite.setState("run", { {0, 2}, {1, 2}, {2, 2}, {3, 2}, {4, 2}, {5, 2}, {6, 2}, {7, 2},
+		{0, 3}, {1, 3}, {2, 3}, {3, 3}, {4, 3}, {5, 3}, {6, 3}, {7, 3} });
 	m_playerSprite.setStateAsDefault("idle");
 
 	m_input.set(Action::Jump, sf::Keyboard::Scancode::Space);
@@ -66,6 +69,8 @@ void Scenes::Platforming::update(px::ApiUpdate& api)
 		ImGui::End();
 	}
 
+	m_elapsed += api.dt;
+
 	playerControlSystem(api);
 
 	movementAndColisionSystem(api);
@@ -75,6 +80,8 @@ void Scenes::Platforming::update(px::ApiUpdate& api)
 
 void Scenes::Platforming::draw(px::ApiDraw& api) const
 {
+	api.window.clear(sf::Color::Blue);
+
 	for (auto [e, _] : m_entities.view<Controllable>())
 	{
 		const auto& position = m_entities.get<Transform>(e).pos;
@@ -125,7 +132,15 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 
 	for (auto [entity, _] : m_entities.view<Controllable>())
 	{
-		api.window.draw(m_playerSprite.get("idle", m_entities.get<Transform>(entity).pos * static_cast<float>(tileSide), sf::Time::Zero));
+		auto& transform = m_entities.get<Transform>(entity);
+		if (transform.vel.x == 0.0f)
+		{
+			api.window.draw(m_playerSprite.get("idle", transform.pos * static_cast<float>(tileSide), m_elapsed));
+		}
+		else
+		{
+			api.window.draw(m_playerSprite.get("run", transform.pos * static_cast<float>(tileSide), m_elapsed));
+		}
 	}
 
 	api.window.setView(api.window.getDefaultView());

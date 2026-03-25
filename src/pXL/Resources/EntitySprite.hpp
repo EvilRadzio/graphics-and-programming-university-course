@@ -67,6 +67,11 @@ namespace px
 				static_cast<sf::Vector2i>(tileSize)
 			));
 
+			sf::IntRect rect(
+				static_cast<sf::Vector2i>(sf::Vector2u{ frames[frame].x * tileSize.x, frames[frame].y * tileSize.y }),
+				static_cast<sf::Vector2i>(tileSize)
+			);
+
 			sf::FloatRect bounds = out.getLocalBounds();
 			out.setScale({
 				static_cast<float>(m_spriteBox.size.x) / bounds.size.x,

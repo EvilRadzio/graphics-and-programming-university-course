@@ -44,6 +44,7 @@ namespace Scenes
 		> m_entities;
 
 		px::EntitySprite m_playerSprite;
+		sf::Time m_elapsed;
 
 		px::Grid<Tile> m_map;
 
