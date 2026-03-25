@@ -97,7 +97,8 @@ namespace px
 		ApiScene buildSceneApi()
 		{
 			return ApiScene{
-				input
+				input,
+				assets
 			};
 		}
 

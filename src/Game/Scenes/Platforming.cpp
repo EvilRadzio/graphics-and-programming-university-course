@@ -4,9 +4,13 @@
 
 Scenes::Platforming::Platforming(px::ApiScene api, Context& ctx) :
 	Scene(api, ctx),
+	m_playerSprite("player", sf::IntRect({-36, -36}, {72, 72}), api.assets.textures),
 	m_map(sf::Vector2u(10, 10), ctx.tiles["empty"]),
 	m_input(api.input)
 {
+	m_playerSprite.setState("idle", { {0, 0} });
+	m_playerSprite.setStateAsDefault("idle");
+
 	m_input.set(Action::Jump, sf::Keyboard::Scancode::Space);
 	m_input.set(Action::Left, sf::Keyboard::Scancode::A);
 	m_input.set(Action::Right, sf::Keyboard::Scancode::D);
@@ -121,12 +125,7 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 
 	for (auto [entity, _] : m_entities.view<Controllable>())
 	{
-		sf::RectangleShape playerRect(sf::Vector2f(tileSide, tileSide));
-		playerRect.setOrigin(sf::Vector2f(tileSide / 2, tileSide / 2));
-		playerRect.setTexture(&api.assets.textures.get("player"));
-		playerRect.setPosition(m_entities.get<Transform>(entity).pos * static_cast<float>(tileSide));
-
-		api.window.draw(playerRect);
+		api.window.draw(m_playerSprite.get("idle", m_entities.get<Transform>(entity).pos * static_cast<float>(tileSide), sf::Time::Zero));
 	}
 
 	api.window.setView(api.window.getDefaultView());

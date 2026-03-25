@@ -5,3 +5,4 @@
 
 #include "Assets.hpp"
 #include "TileSprite.hpp"
+#include "EntitySprite.hpp"

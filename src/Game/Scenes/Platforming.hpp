@@ -43,6 +43,8 @@ namespace Scenes
 			Controllable
 		> m_entities;
 
+		px::EntitySprite m_playerSprite;
+
 		px::Grid<Tile> m_map;
 
 		enum class Action : uint8_t
