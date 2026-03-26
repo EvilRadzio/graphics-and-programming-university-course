@@ -26,6 +26,11 @@ namespace px
 			ImGui::GetIO().FontGlobalScale = 2.0f;
 		};
 
+		Client(const Client&) = delete;
+		Client(Client&&) = delete;
+		Client& operator=(const Client&) = delete;
+		Client& operator=(Client&&) = delete;
+
 		virtual ~Client()
 		{
 			ImGui::SFML::Shutdown();
@@ -69,7 +74,7 @@ namespace px
 
 				preUpdate();
 
-				scenes.update(updateApi);
+				scenes.update(updateApi, sceneComms);
 
 				postUpdate();
 
@@ -94,23 +99,23 @@ namespace px
 
 	protected:
 
-		ApiScene buildSceneApi()
-		{
-			return ApiScene{
-				input,
-				assets
-			};
-		}
-
 		typename I::Context ctx;
+
 		Assets assets;
 		sf::RenderWindow window;
 		SceneStack<I> scenes;
 		InputRaw input;
+		SceneComms<I> sceneComms;
+
+		ApiScene<I> apiScene{
+			sceneComms,
+			input,
+			assets
+		};
 
 	private:
 
 		static constexpr uint32_t k_tps{ 60 };
-		static constexpr sf::Time k_fixedDt = std::chrono::microseconds(1000000 / k_tps);
+		static constexpr sf::Time k_fixedDt = sf::microseconds(1000000 / k_tps);
 	};
 }

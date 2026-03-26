@@ -2,7 +2,7 @@
 
 #include "Platforming.hpp"
 
-Scenes::Platforming::Platforming(px::ApiScene api, Context& ctx) :
+Scenes::Platforming::Platforming(ApiScene& api, Context& ctx) :
 	Scene(api, ctx),
 	m_playerSprite("knight", sf::IntRect({-72, -90}, {144, 144}), api.assets.textures),
 	m_map(sf::Vector2u(10, 10), ctx.tiles["empty"]),
@@ -63,10 +63,15 @@ void Scenes::Platforming::update(px::ApiUpdate& api)
 		{
 			if (ImGui::Button("Go back"))
 			{
-				popScene();
+				scene.comms.pop({});
 			}
 		}
 		ImGui::End();
+	}
+
+	if (scene.input.isPressed(sf::Keyboard::Scancode::Escape))
+	{
+		scene.comms.push(SceneId::Pause, {});
 	}
 
 	m_elapsed += api.dt;

@@ -14,3 +14,4 @@ struct Internal
 };
 
 using Scene = px::Scene<Internal>;
+using ApiScene = px::ApiScene<Internal>;

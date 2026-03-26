@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <utility>
+#include <cassert>
 
 #include "Internal.hpp"
 
@@ -20,27 +21,53 @@ namespace px
 	{
 	public:
 
-		void push(const typename I::SceneId sceneId, typename I::ScenePayload&& scenePayload)
+		// make this into an interface and push the actual logic into a class so the scene stack doesn't poke into this
+
+		enum class Action
 		{
-			m_push.emplace(sceneId, scenePayload);
+			None,
+			Push,
+			Replace,
+			Pop,
+			PopUntill
+		};
+
+		void push(const typename I::SceneId sceneId, std::optional<typename I::ScenePayload>&& scenePayload)
+		{
+			m_action = Action::Push;
+			m_requested = sceneId;
+			m_payload = std::move(scenePayload);
 		}
 
-		void replace(const typename I::SceneId sceneId, typename I::ScenePayload&& scenePayload)
+		void replace(const typename I::SceneId sceneId, std::optional<typename I::ScenePayload>&& scenePayload)
 		{
-			m_replace.emplace(sceneId, scenePayload);
+			m_action = Action::Replace;
+			m_requested = sceneId;
+			m_payload = std::move(scenePayload);
 		}
 
-		void pop(typename I::ScenePayload&& scenePayload)
+		void pop(std::optional<typename I::ScenePayload>&& scenePayload)
 		{
-			m_pop.emplace(scenePayload);
+			m_action = Action::Pop;
+			m_requested = {};
+			m_payload = std::move(scenePayload);
 		}
+
+		void popUntill(const typename I::SceneId sceneId, std::optional<typename I::ScenePayload>&& scenePayload)
+		{
+			m_action = Action::PopUntill;
+			m_requested = sceneId;
+			m_payload = std::move(scenePayload);
+		}
+
+		const I::ScenePayload* getLastPayload() const { return m_payload? &m_payload.value() : nullptr; }
 		
 	private:
 
-		std::optional<std::pair<typename I::SceneId, typename I::ScenePayload>> m_push;
-		std::optional<std::pair<typename I::SceneId, typename I::ScenePayload>> m_replace;
-		std::optional<typename I::ScenePayload> m_pop;
+		std::optional<typename I::ScenePayload> m_payload{};
+		std::optional<typename I::SceneId> m_requested{};
+		Action m_action{};
 
-		friend SceneStack;
+		friend SceneStack<I>;
 	};
 }

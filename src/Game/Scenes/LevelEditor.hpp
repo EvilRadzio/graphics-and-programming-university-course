@@ -8,7 +8,7 @@ namespace Scenes
 	{
 	public:
 			
-		LevelEditor(px::ApiScene api, Context& ctx);
+		LevelEditor(ApiScene api, Context& ctx);
 
 		void update(px::ApiUpdate& api) override;
 		void draw(px::ApiDraw& api) const override;

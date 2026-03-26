@@ -8,7 +8,7 @@ namespace Scenes
 	{
 	public:
 
-		Platforming(px::ApiScene api, Context& ctx);
+		Platforming(ApiScene& api, Context& ctx);
 
 		void update(px::ApiUpdate& api) override;
 		void draw(px::ApiDraw& api) const override;

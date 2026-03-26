@@ -3,7 +3,7 @@
 #include <fstream>
 #include <filesystem>
 
-Scenes::LevelEditor::LevelEditor(px::ApiScene api, Context& ctx) :
+Scenes::LevelEditor::LevelEditor(ApiScene api, Context& ctx) :
 	Scene(api, ctx),
 	LE_map(sf::Vector2u(25, 25), ctx.tiles["empty"]) 
 {
@@ -37,7 +37,7 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 	{
 		if (ImGui::Button("Back"))
 		{
-			popScene();
+			scene.comms.pop({});
 		}
 
 		//ImGui::DragInt("##d", &currentTile, 0.5f, 0, 1);
@@ -124,11 +124,11 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 		sf::Vector2i(0,0), sf::Vector2i(28,28)
 	};
 
-	sf::Vector2i mousePosition = sceneApi.input.getMousePosition();
+	sf::Vector2i mousePosition = scene.input.getMousePosition();
 	for (unsigned int y = 0; y < 25; y++) {
 		for (unsigned int x = 0; x < 25; x++) {
 			rect.position = sf::Vector2i(x * 28, y * 28);
-			if (sceneApi.input.isPressed(sf::Mouse::Button::Left) && rect.contains(mousePosition)) {
+			if (scene.input.isPressed(sf::Mouse::Button::Left) && rect.contains(mousePosition)) {
 				sf::Vector2u MP = sf::Vector2u(mousePosition / (720 / 25));
 				LE_map.at(MP) = ctx.tiles.at(TileName[currentTile]);
 				//LE_map.set(MP, sceneApi.tiles.handle("solid_block")); //change it to currentTile later.

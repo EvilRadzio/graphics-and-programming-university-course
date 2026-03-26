@@ -8,7 +8,7 @@ namespace Scenes
 	{
 	public:
 
-		MainMenu(px::ApiScene api, Context& ctx) : Scene(api, ctx) {}
+		MainMenu(ApiScene& api, Context& ctx) : Scene(api, ctx) {}
 
 		void update(px::ApiUpdate& api) override
 		{
@@ -26,15 +26,15 @@ namespace Scenes
 			{
 				if (ImGui::Button("Play TicTacToe"))
 				{
-					pushScene(SceneId::TicTacToe);
+					scene.comms.push(SceneId::TicTacToe, {});
 				}
 				if (ImGui::Button("Platforming!!!"))
 				{
-					pushScene(SceneId::Platforming);
+					scene.comms.push(SceneId::Platforming, {});
 				}
 				if (ImGui::Button("Tilemap Editor"))
 				{
-					pushScene(SceneId::LevelEditor);
+					scene.comms.push(SceneId::LevelEditor, {});
 				}
 				if (ImGui::Button("Exit"))
 				{

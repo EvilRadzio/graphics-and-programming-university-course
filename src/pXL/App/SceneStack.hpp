@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stack>
+#include <vector>
 #include <memory>
 #include <functional>
 #include <unordered_map>
@@ -18,38 +18,54 @@ namespace px
 		using SceneFactory = std::function<std::unique_ptr<Scene<I>>()>;
 
 		void registerScene(typename I::SceneId id, SceneFactory&& factoryFunction) { m_factories[id] = std::move(factoryFunction); }
-		void pushScene(typename I::SceneId id) { assert(m_factories.count(id));  m_scenes.push(m_factories[id]()); }
-		void popScene() { assert(!m_scenes.empty());  m_scenes.pop(); }
+		void pushScene(typename I::SceneId id) { assert(m_factories.count(id));  m_scenes.push_back(m_factories[id]()); }
+		void popScene() { assert(!m_scenes.empty());  m_scenes.pop_back(); }
 		bool empty() { return m_scenes.empty(); }
 
-		void update(ApiUpdate& api)
+		void update(ApiUpdate& api, SceneComms<I>& comms)
 		{
-			if (m_scenes.top()->m_push)
+			if (comms.m_action == SceneComms<I>::Action::Push)
 			{
-				typename I::SceneId tag = m_scenes.top()->m_push.value();
-				m_scenes.top()->m_push = {};
+				typename I::SceneId tag = comms.m_requested.value();
+				comms.m_action = SceneComms<I>::Action::None;
 				pushScene(tag);
 			}
-			else if (m_scenes.top()->m_pop)
+			else if (comms.m_action == SceneComms<I>::Action::Pop)
 			{
+				comms.m_action = SceneComms<I>::Action::None;
 				popScene();
 			}
 
 			assert(!m_scenes.empty());
 
-			m_scenes.top()->update(api);
+			m_scenes.back()->update(api);
 		}
 
 		void draw(ApiDraw& api) const
 		{
 			assert(!m_scenes.empty());
 			
-			m_scenes.top()->draw(api);
+			const size_t count = m_scenes.size();
+			size_t firstRenderable = count;
+			for (size_t i = count - 1; i < count; --i)
+			{
+				firstRenderable = i;
+
+				if (!m_scenes[i]->getProperties().renderThrough)
+				{
+					break;
+				}
+			}
+
+			for (size_t i = firstRenderable; i < count; ++i)
+			{
+				m_scenes[i]->draw(api);
+			}
 		}
 
 	private:
 
 		std::unordered_map<typename I::SceneId, SceneFactory> m_factories;
-		std::stack<std::unique_ptr<Scene<I>>> m_scenes;
+		std::vector<std::unique_ptr<Scene<I>>> m_scenes;
 	};
 }

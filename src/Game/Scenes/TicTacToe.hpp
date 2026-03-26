@@ -13,7 +13,7 @@ namespace Scenes
 
 		enum class T : uint8_t { E, X, O };
 
-		TicTacToe(px::ApiScene api, Context& ctx) : Scene(api, ctx)
+		TicTacToe(ApiScene api, Context& ctx) : Scene(api, ctx)
 		{
 			std::array<T, 9> empty{ T::E, T::E, T::E, T::E, T::E, T::E, T::E, T::E, T::E };
 			m_moves.push(empty);
@@ -36,7 +36,7 @@ namespace Scenes
 				{
 					if (ImGui::Button("Go back"))
 					{
-						popScene();
+						scene.comms.pop({});
 					}
 				}
 				ImGui::End();
@@ -56,13 +56,13 @@ namespace Scenes
 
 				return;
 			}
-			if (sceneApi.input.isPressed(sf::Mouse::Button::Right) &&
+			if (scene.input.isPressed(sf::Mouse::Button::Right) &&
 				m_moves.size() > 1)
 			{
 				m_moves.pop();
 			}
 
-			sf::Vector2i mousePosition = sceneApi.input.getMousePosition();
+			sf::Vector2i mousePosition = scene.input.getMousePosition();
 
 			for (int32_t y = 0; y < 3; ++y) for (int32_t x = 0; x < 3; ++x)
 			{
@@ -72,7 +72,7 @@ namespace Scenes
 				);
 
 				if (rect.contains(mousePosition) &&
-					sceneApi.input.isPressed(sf::Mouse::Button::Left) &&
+					scene.input.isPressed(sf::Mouse::Button::Left) &&
 					m_moves.top()[y * 3 + x] == T::E)
 				{
 					m_moves.push(m_moves.top());

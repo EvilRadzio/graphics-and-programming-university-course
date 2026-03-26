@@ -24,26 +24,27 @@ namespace px
 	{
 	public:
 
-		Scene(const ApiScene& api, typename I::Context& ctx) : sceneApi(api), ctx(ctx) {}
+		Scene(const ApiScene<I>& api, typename I::Context& ctx) : scene(api), ctx(ctx) {}
 		virtual ~Scene() = default;
 
 		virtual void update(ApiUpdate& api) = 0;
 		virtual void draw(ApiDraw& api) const = 0;
 
+		struct Properties
+		{
+			bool renderThrough{};
+		};
+
+		const Properties& getProperties() const { return properties; }
+
 	protected:
 
-		ApiScene sceneApi;
+		ApiScene<I> scene;
+		Properties properties;
 		typename I::Context& ctx;
-
-		void pushScene(typename I::SceneId tag) { m_push = tag; }
-		void popScene() { m_pop = true; }
-
-		// Implement pop untill, replace and pop untill replace methods
 
 	private:
 
 		friend SceneStack<I>;
-		std::optional<typename I::SceneId> m_push{};
-		bool m_pop{};
 	};
 }
