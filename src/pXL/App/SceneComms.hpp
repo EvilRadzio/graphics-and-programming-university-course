@@ -29,7 +29,7 @@ namespace px
 			Push,
 			Replace,
 			Pop,
-			PopUntill
+			PopUntil
 		};
 
 		void push(const typename I::SceneId sceneId, std::optional<typename I::ScenePayload>&& scenePayload)
@@ -53,9 +53,9 @@ namespace px
 			m_payload = std::move(scenePayload);
 		}
 
-		void popUntill(const typename I::SceneId sceneId, std::optional<typename I::ScenePayload>&& scenePayload)
+		void popUntil(const typename I::SceneId sceneId, std::optional<typename I::ScenePayload>&& scenePayload)
 		{
-			m_action = Action::PopUntill;
+			m_action = Action::PopUntil;
 			m_requested = sceneId;
 			m_payload = std::move(scenePayload);
 		}

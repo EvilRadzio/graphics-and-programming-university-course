@@ -48,27 +48,6 @@ Scenes::Platforming::Platforming(ApiScene& api, Context& ctx) :
 
 void Scenes::Platforming::update(px::ApiUpdate& api)
 {
-	{
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
-
-		if (ImGui::Begin("##Menu", nullptr,
-			ImGuiWindowFlags_NoDecoration |
-			ImGuiWindowFlags_NoMove |
-			ImGuiWindowFlags_NoResize |
-			ImGuiWindowFlags_NoSavedSettings |
-			ImGuiWindowFlags_NoBackground))
-		{
-			if (ImGui::Button("Go back"))
-			{
-				scene.comms.pop({});
-			}
-		}
-		ImGui::End();
-	}
-
 	if (scene.input.isPressed(sf::Keyboard::Scancode::Escape))
 	{
 		scene.comms.push(SceneId::Pause, {});

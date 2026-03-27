@@ -8,40 +8,27 @@ namespace Scenes
 	{
 	public:
 
-		MainMenu(ApiScene& api, Context& ctx) : Scene(api, ctx) {}
+		MainMenu(ApiScene& api, Context& ctx) : Scene(api, ctx), m_menu({360, 360})
+		{
+			m_menu.addButton("Play", [&]() {scene.comms.push(SceneId::Platforming, {}); });
+			m_menu.addButton("Level Editor", [&]() {scene.comms.push(SceneId::LevelEditor, {}); });
+			m_menu.addButton("Exit", [&]() {});
+		}
 
 		void update(px::ApiUpdate& api) override
 		{
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-			ImGui::SetNextWindowPos(viewport->Pos);
-			ImGui::SetNextWindowSize(viewport->Size);
-
-			if (ImGui::Begin("##Menu", nullptr,
-				ImGuiWindowFlags_NoDecoration |
-				ImGuiWindowFlags_NoMove |
-				ImGuiWindowFlags_NoResize |
-				ImGuiWindowFlags_NoSavedSettings |
-				ImGuiWindowFlags_NoBackground))
+			if (scene.input.isPressed(sf::Keyboard::Scancode::W))
 			{
-				if (ImGui::Button("Play TicTacToe"))
-				{
-					scene.comms.push(SceneId::TicTacToe, {});
-				}
-				if (ImGui::Button("Platforming!!!"))
-				{
-					scene.comms.push(SceneId::Platforming, {});
-				}
-				if (ImGui::Button("Tilemap Editor"))
-				{
-					scene.comms.push(SceneId::LevelEditor, {});
-				}
-				if (ImGui::Button("Exit"))
-				{
-					//api.window.close();
-				}
+				m_menu.moveUp();
 			}
-			ImGui::End();
+			else if (scene.input.isPressed(sf::Keyboard::Scancode::S))
+			{
+				m_menu.moveDown();
+			}
+			else if (scene.input.isPressed(sf::Keyboard::Scancode::Space))
+			{
+				m_menu.activate();
+			}
 		}
 
 		void draw(px::ApiDraw& api) const override
@@ -52,6 +39,12 @@ namespace Scenes
 			mikuShape.setTexture(&api.assets.textures.get("player"));
 
 			api.window.draw(mikuShape);
+
+			m_menu.draw(api);
 		}
+
+	private:
+
+		px::TextMenu m_menu;
 	};
 }

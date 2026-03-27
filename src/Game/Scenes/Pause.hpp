@@ -8,9 +8,12 @@ namespace Scenes
 	{
 	public:
 
-		Pause(ApiScene& api, Context& ctx) : Scene(api, ctx)
+		Pause(ApiScene& api, Context& ctx) : Scene(api, ctx), m_menu({360, 260})
 		{
 			properties.renderThrough = true;
+
+			m_menu.addButton("Resume", [&]() {scene.comms.pop({}); });
+			m_menu.addButton("Exit", [&]() {scene.comms.popUntil(SceneId::MainMenu, {}); });
 		}
 
 		void update(px::ApiUpdate& api) override
@@ -18,6 +21,18 @@ namespace Scenes
 			if (scene.input.isPressed(sf::Keyboard::Scancode::Escape))
 			{
 				scene.comms.pop({});
+			}
+			else if (scene.input.isPressed(sf::Keyboard::Scancode::W))
+			{
+				m_menu.moveUp();
+			}
+			else if (scene.input.isPressed(sf::Keyboard::Scancode::S))
+			{
+				m_menu.moveDown();
+			}
+			else if (scene.input.isPressed(sf::Keyboard::Scancode::Space))
+			{
+				m_menu.activate();
 			}
 		}
 
@@ -29,9 +44,14 @@ namespace Scenes
 			api.window.draw(darkRect);
 
 			sf::Text text(api.assets.font, "Pause", 72);
-			text.setPosition({ 100, 100 });
 			
 			api.window.draw(text);
+
+			m_menu.draw(api);
 		}
+
+	private:
+
+		px::TextMenu m_menu;
 	};
 }

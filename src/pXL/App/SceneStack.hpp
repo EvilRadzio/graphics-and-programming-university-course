@@ -18,22 +18,32 @@ namespace px
 		using SceneFactory = std::function<std::unique_ptr<Scene<I>>()>;
 
 		void registerScene(typename I::SceneId id, SceneFactory&& factoryFunction) { m_factories[id] = std::move(factoryFunction); }
-		void pushScene(typename I::SceneId id) { assert(m_factories.count(id));  m_scenes.push_back(m_factories[id]()); }
-		void popScene() { assert(!m_scenes.empty());  m_scenes.pop_back(); }
+		void pushScene(typename I::SceneId id) { assert(m_factories.count(id));  m_scenes.push_back(m_factories[id]()); m_sceneIds.push_back(id); }
+		void popScene() { assert(!m_scenes.empty());  m_scenes.pop_back(); m_sceneIds.pop_back(); }
 		bool empty() { return m_scenes.empty(); }
 
 		void update(ApiUpdate& api, SceneComms<I>& comms)
 		{
 			if (comms.m_action == SceneComms<I>::Action::Push)
 			{
-				typename I::SceneId tag = comms.m_requested.value();
+				const typename I::SceneId requested = comms.m_requested.value();
 				comms.m_action = SceneComms<I>::Action::None;
-				pushScene(tag);
+				pushScene(requested);
 			}
 			else if (comms.m_action == SceneComms<I>::Action::Pop)
 			{
 				comms.m_action = SceneComms<I>::Action::None;
 				popScene();
+			}
+			else if (comms.m_action == SceneComms<I>::Action::PopUntil)
+			{
+				const typename I::SceneId requested = comms.m_requested.value();
+				comms.m_action = SceneComms<I>::Action::None;
+				
+				while (m_sceneIds.back() != requested)
+				{
+					popScene();
+				}
 			}
 
 			assert(!m_scenes.empty());
@@ -67,5 +77,8 @@ namespace px
 
 		std::unordered_map<typename I::SceneId, SceneFactory> m_factories;
 		std::vector<std::unique_ptr<Scene<I>>> m_scenes;
+		std::vector<typename I::SceneId> m_sceneIds;
+
+		// ids really shouldn't be in a separate vector
 	};
 }
