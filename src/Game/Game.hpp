@@ -37,6 +37,30 @@ public:
 
 		assets.tileSprites.set(px::TileSprite{"tiles/moss_on_cobble_tileset"}, "solid_block");
 
+		std::vector<px::Frame> idle;
+		for (int32_t x = 0; x < 4; ++x)
+		{
+			idle.push_back({ sf::IntRect({x * 32, 0}, {32, 32}), sf::milliseconds(200) });
+		}
+
+		std::vector<px::Frame> run;
+		for (int32_t y = 2; y < 4; ++y)
+		{
+			for (int32_t x = 0; x < 8; ++x)
+			{
+				run.push_back({ sf::IntRect({x * 32, y * 32}, {32, 32}), sf::milliseconds(125) });
+			}
+		}
+
+		std::unordered_map<std::string, px::Clip> clips{
+			{"idle", px::Clip(true, std::move(idle))},
+			{"run", px::Clip(true, std::move(run))}
+		};
+
+		px::SpriteDefinition sprite{ std::move(clips), "knight", sf::IntRect({-72, -90}, {144, 144}) };
+
+		assets.entitySprites.set(std::move(sprite), "knight");
+
 		assets.font = sf::Font("resources/Butterpop.otf");
 	}
 };

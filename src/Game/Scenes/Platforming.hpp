@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/Types.hpp"
+#include "Game/Map.hpp"
 
 namespace Scenes
 {
@@ -43,10 +44,10 @@ namespace Scenes
 			Controllable
 		> m_entities;
 
-		px::EntitySprite m_playerSprite;
+		px::SpriteInstance m_playerSprite;
 		sf::Time m_elapsed;
 
-		px::Grid<Tile> m_map;
+		Map m_map;
 
 		enum class Action : uint8_t
 		{

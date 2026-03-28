@@ -4,16 +4,10 @@
 
 Scenes::Platforming::Platforming(ApiScene& api, Context& ctx) :
 	Scene(api, ctx),
-	m_playerSprite("knight", sf::IntRect({-72, -90}, {144, 144}), api.assets.textures),
+	m_playerSprite{ "knight", "", {} },
 	m_map(sf::Vector2u(10, 10), ctx.tiles["empty"]),
 	m_input(api.input)
 {
-	m_playerSprite.setGridSize({ 8,8 });
-	m_playerSprite.setState("idle", { {0, 0}, {1, 0}, {2, 0}, {3, 0} });
-	m_playerSprite.setState("run", { {0, 2}, {1, 2}, {2, 2}, {3, 2}, {4, 2}, {5, 2}, {6, 2}, {7, 2},
-		{0, 3}, {1, 3}, {2, 3}, {3, 3}, {4, 3}, {5, 3}, {6, 3}, {7, 3} });
-	m_playerSprite.setStateAsDefault("idle");
-
 	m_input.set(Action::Jump, sf::Keyboard::Scancode::Space);
 	m_input.set(Action::Left, sf::Keyboard::Scancode::A);
 	m_input.set(Action::Right, sf::Keyboard::Scancode::D);
@@ -85,19 +79,9 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 	{
 		sf::Vector2u position(x, y);
 
-		uint8_t adjacent{};
-		sf::Vector2u testPosition{ position.x, position.y - 1 };
-		adjacent += 1 * (m_map.withinBounds(testPosition) && m_map.at(testPosition).tileName == m_map.at(position).tileName);
-		testPosition = { position.x + 1, position.y};
-		adjacent += 2 * (m_map.withinBounds(testPosition) && m_map.at(testPosition).tileName == m_map.at(position).tileName);
-		testPosition = { position.x, position.y + 1 };
-		adjacent += 4 * (m_map.withinBounds(testPosition) && m_map.at(testPosition).tileName == m_map.at(position).tileName);
-		testPosition = { position.x - 1, position.y };
-		adjacent += 8 * (m_map.withinBounds(testPosition) && m_map.at(testPosition).tileName == m_map.at(position).tileName);
-
 		if (m_map.at(position).sprite != "")
 		{
-			auto sprite(api.assets.tileSprites.get(m_map.at(position).sprite).get(adjacent, api.assets.textures));
+			auto sprite(api.assets.tileSprites.get(m_map.at(position).sprite).get(getAdjacent(m_map, position), api.assets.textures));
 
 			sprite.setPosition(sf::Vector2f{
 				static_cast<float>(x * tileSide),
@@ -119,11 +103,25 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 		auto& transform = m_entities.get<Transform>(entity);
 		if (transform.vel.x == 0.0f)
 		{
-			api.window.draw(m_playerSprite.get("idle", transform.pos * static_cast<float>(tileSide), m_elapsed));
+			sf::Sprite sprite(api.assets.textures.get("knight"));
+			sprite.setTextureRect(api.assets.entitySprites.get("knight").clips.at("idle").getFrameRect(m_elapsed));
+			auto bounds = sprite.getLocalBounds();
+			auto spriteBounds = api.assets.entitySprites.get("knight").rect;
+			sprite.setPosition(transform.pos * static_cast<float>(tileSide) + static_cast<sf::Vector2f>(spriteBounds.position));
+			sprite.setScale({ spriteBounds.size.x / bounds.size.x, spriteBounds.size.y / bounds.size.y });
+
+			api.window.draw(sprite);
 		}
 		else
 		{
-			api.window.draw(m_playerSprite.get("run", transform.pos * static_cast<float>(tileSide), m_elapsed));
+			sf::Sprite sprite(api.assets.textures.get("knight"));
+			sprite.setTextureRect(api.assets.entitySprites.get("knight").clips.at("run").getFrameRect(m_elapsed));
+			auto bounds = sprite.getLocalBounds();
+			auto spriteBounds = api.assets.entitySprites.get("knight").rect;
+			sprite.setPosition(transform.pos * static_cast<float>(tileSide) + static_cast<sf::Vector2f>(spriteBounds.position));
+			sprite.setScale({ spriteBounds.size.x / bounds.size.x, spriteBounds.size.y / bounds.size.y });
+
+			api.window.draw(sprite);
 		}
 	}
 

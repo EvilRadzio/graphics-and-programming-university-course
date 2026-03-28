@@ -36,10 +36,12 @@ namespace px
 			ImGui::SFML::Shutdown();
 		}
 
-		virtual void preUpdate(){}
-		virtual void postUpdate(){}
-		virtual void preDraw(){}
-		virtual void postDraw(){}
+		virtual void interceptEvent(const sf::Event& event) {}
+
+		virtual void preEvent() {}
+		virtual void postEventPreUpdate() {}
+		virtual void postUpdatePreDraw() {}
+		virtual void postDraw() {}
 
 		void run()
 		{
@@ -49,6 +51,8 @@ namespace px
 
 			while (window.isOpen())
 			{
+				preEvent();
+
 				input.newTick();
 
 				while (const auto event = window.pollEvent())
@@ -57,11 +61,15 @@ namespace px
 
 					ImGui::SFML::ProcessEvent(window, *event);
 
+					interceptEvent(*event);
+
 					if (event->is<sf::Event::Closed>())
 					{
 						window.close();
 					}
 				}
+
+				postEventPreUpdate();
 
 				sf::Time realDt = clock.restart();
 
@@ -72,13 +80,9 @@ namespace px
 					k_fixedDt
 				};
 
-				preUpdate();
-
 				scenes.update(updateApi, sceneComms);
 
-				postUpdate();
-
-				preDraw();
+				postUpdatePreDraw();
 
 				window.clear(sf::Color::Black);
 

@@ -10,13 +10,13 @@
 namespace px
 {
 	template <typename T>
-	class Manager
+	class Registry
 	{
 	public:
 
-		Manager() = default;
-		Manager(const Manager&) = delete;
-		Manager& operator=(const Manager&) = delete;
+		Registry() = default;
+		Registry(const Registry&) = delete;
+		Registry& operator=(const Registry&) = delete;
 
 		class Handle
 		{
@@ -25,7 +25,7 @@ namespace px
 
 			Handle(size_t id, size_t gen) : id(id), gen(gen) {}
 
-			friend Manager;
+			friend Registry;
 		};
 
 		void setError(T&& resource)

@@ -5,7 +5,7 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "pXL/Manager.hpp"
+#include "pXL/Registry.hpp"
 
 namespace px
 {
@@ -13,7 +13,7 @@ namespace px
 	{
 		std::string textureName;
 
-		sf::Sprite get(uint8_t adjacent, const Manager<sf::Texture>& textures) const
+		sf::Sprite get(uint8_t adjacent, const Registry<sf::Texture>& textures) const
 		{
             const sf::Texture& texture = textures.get(textureName);
             sf::Sprite out(texture);

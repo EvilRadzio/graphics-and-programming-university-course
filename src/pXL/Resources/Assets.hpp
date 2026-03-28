@@ -2,15 +2,17 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "pXL/Manager.hpp"
+#include "pXL/Registry.hpp"
 #include "TileSprite.hpp"
+#include "SpriteDefinition.hpp"
 
 namespace px
 {
 	struct Assets
 	{
-		Manager<sf::Texture> textures;
-		Manager<TileSprite> tileSprites;
+		Registry<sf::Texture> textures;
+		Registry<TileSprite> tileSprites;
+		Registry<SpriteDefinition> entitySprites;
 		sf::Font font;
 	};
 }

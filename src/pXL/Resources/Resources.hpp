@@ -5,4 +5,6 @@
 
 #include "Assets.hpp"
 #include "TileSprite.hpp"
-#include "EntitySprite.hpp"
+#include "Clip.hpp"
+#include "SpriteDefinition.hpp"
+#include "SpriteInstance.hpp"
