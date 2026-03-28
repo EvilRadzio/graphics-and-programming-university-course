@@ -20,7 +20,7 @@ public:
 				return;
 			}
 
-			assets.textures.set(std::move(texture), name);
+			assets.textures.set(name, std::move(texture));
 
 			std::cout << "Loaded: " << name << std::endl;
 		});
@@ -35,7 +35,7 @@ public:
 		ctx.tiles["empty"] = Tile{Tile::Type::Air, "", "empty"};
 		ctx.tiles["solid_block"] = Tile{ Tile::Type::Solid, "solid_block", "solid_block"};
 
-		assets.tileSprites.set(px::TileSprite{"tiles/moss_on_cobble_tileset"}, "solid_block");
+		assets.tileSprites.set("solid_block", px::TileSprite{ "tiles/moss_on_cobble_tileset" });
 
 		std::vector<px::Frame> idle;
 		for (int32_t x = 0; x < 4; ++x)
@@ -59,7 +59,7 @@ public:
 
 		px::SpriteDefinition sprite{ std::move(clips), "knight", sf::IntRect({-72, -90}, {144, 144}) };
 
-		assets.entitySprites.set(std::move(sprite), "knight");
+		assets.entitySprites.set("knight", std::move(sprite));
 
 		assets.font = sf::Font("resources/Butterpop.otf");
 	}

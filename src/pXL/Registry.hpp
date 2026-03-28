@@ -3,7 +3,7 @@
 #include <utility>
 #include <vector>
 #include <unordered_map>
-#include <string>
+#include <string_view>
 #include <cassert>
 #include <optional>
 
@@ -18,89 +18,39 @@ namespace px
 		Registry(const Registry&) = delete;
 		Registry& operator=(const Registry&) = delete;
 
-		class Handle
-		{
-			size_t id;
-			size_t gen;
-
-			Handle(size_t id, size_t gen) : id(id), gen(gen) {}
-
-			friend Registry;
-		};
-
 		void setError(T&& resource)
 		{
-			m_errorResource.emplace(std::move(resource));
+			m_error = std::move(resource);
 		}
 
-		bool exists(const Handle handle) const { return handle.id < m_resources.size() && m_resources[handle.id].second == handle.gen; }
-		bool exists(const std::string& name) const { return m_mappings.count(name); }
+		bool exists(const std::string& name) const { return m_resources.count(name); }
 
-		Handle set(T&& resource, const std::string& name)
+		const T& set(const std::string& name, T&& resource)
 		{
-			if (exists(name))
-			{
-				Handle handle = m_mappings.at(name);
-				++handle.gen;
-				m_resources[handle.id].first = std::move(resource);
-				m_resources[handle.id].second = handle.gen;
-				return handle;
-			}
-
-			Handle handle(m_resources.size(), 0);
-			m_mappings.emplace(name, handle);
-			m_resources.emplace_back(std::move(resource), 0);
-			return handle;
-		}
-
-		const T* tryGet(const Handle handle) const
-		{
-			if (exists(handle))
-			{
-				return m_resources[handle.id].first;
-			}
-
-			return m_errorResource ? &m_errorResource.value() : nullptr;
+			m_resources.insert_or_assign(name, std::move(resource));
+			return m_resources.at(name);
 		}
 
 		const T* tryGet(const std::string& name) const
 		{
 			if (exists(name))
 			{
-				return m_resources[m_mappings.at(name).id].first;
+				return &m_resources.at(name);
 			}
 
-			return m_errorResource ? &m_errorResource.value() : nullptr;;
-		}
-
-		const T& get(const Handle handle) const
-		{
-			assert(exists(handle));
-			return m_resources[handle.id].first;
+			return m_error ? &m_error.value() : nullptr;;
 		}
 
 		const T& get(const std::string& name) const
 		{
-			assert(exists(name));
-			return m_resources[m_mappings.at(name).id].first;
-		}		
-
-		Handle getHandle(const std::string& name) const
-		{
-			assert(exists(name));
-			return m_mappings.at(name);
-		}
-
-		void unload()
-		{
-			m_resources.clear();
-			m_mappings.clear();
+			const T* out = tryGet(name);
+			assert(out);
+			return *out;
 		}
 
 	private:
 
-		std::vector<std::pair<T, size_t>> m_resources;
-		std::unordered_map<std::string, Handle> m_mappings;
-		std::optional<T> m_errorResource;
+		std::unordered_map<std::string, T> m_resources;
+		std::optional<T> m_error;
 	};
 }
