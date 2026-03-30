@@ -4,14 +4,10 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "Frame.hpp"
+
 namespace px
 {
-	struct Frame
-	{
-		sf::IntRect rect;
-		sf::Time time;
-	};
-
 	class Clip
 	{
 	public:
