@@ -60,9 +60,14 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 {
 	api.window.clear(sf::Color::Blue);
 
+	sf::Vector2u size = m_map.size();
+	uint32_t tileSide = 720 / size.x;
+
 	for (auto [e, _] : m_entities.view<Controllable>())
 	{
 		const auto& position = m_entities.get<Transform>(e).pos;
+
+		api.window.draw(px::Background(scene.assets.backgrounds.get("background"), -position.x * tileSide));
 
 		sf::View view(
 			position * static_cast<float>(api.window.getSize().x / 10.0f),
@@ -71,9 +76,6 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 
 		api.window.setView(view);
 	}
-
-	sf::Vector2u size = m_map.size();
-	uint32_t tileSide = 720 / size.x;
 
 	for (size_t y = 0; y < size.y; ++y) for (size_t x = 0; x < size.x; ++x)
 	{
