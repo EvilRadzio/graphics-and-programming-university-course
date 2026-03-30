@@ -6,7 +6,6 @@
 #include "ApiDraw.hpp"
 #include "ApiScene.hpp"
 #include "ApiUpdate.hpp"
-#include "ApiUpdateGui.hpp"
 
 namespace sf
 {
@@ -16,7 +15,7 @@ namespace sf
 namespace px
 {
 	template <Internal I>
-	class SceneManager;
+	class SceneStack;
 
 	// Add input and visual passthrough
 
@@ -25,26 +24,27 @@ namespace px
 	{
 	public:
 
-		Scene(const ApiScene& api) : sceneApi(api) {}
+		Scene(const ApiScene<I>& api, typename I::Context& ctx) : scene(api), ctx(ctx) {}
 		virtual ~Scene() = default;
 
-		virtual void updateGui(typename I::Context& context, ApiUpdateGui& api) = 0;
-		virtual void update(typename I::Context& context, ApiUpdate& api) = 0;
-		virtual void draw(const typename I::Context& context, ApiDraw& api) const = 0;
+		virtual void update(ApiUpdate& api) = 0;
+		virtual void draw(ApiDraw& api) const = 0;
+
+		struct Properties
+		{
+			bool renderThrough{};
+		};
+
+		const Properties& getProperties() const { return properties; }
 
 	protected:
 
-		ApiScene sceneApi;
-
-		void pushScene(typename I::SceneId tag) { m_push = tag; }
-		void popScene() { m_pop = true; }
-
-		// Implement pop untill, replace and pop untill replace methods
+		ApiScene<I> scene;
+		Properties properties;
+		typename I::Context& ctx;
 
 	private:
 
-		friend SceneManager<I>;
-		std::optional<typename I::SceneId> m_push{};
-		bool m_pop{};
+		friend SceneStack<I>;
 	};
 }

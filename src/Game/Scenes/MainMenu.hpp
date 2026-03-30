@@ -8,55 +8,43 @@ namespace Scenes
 	{
 	public:
 
-		MainMenu(px::ApiScene api) : Scene(api) {}
-
-		void updateGui(Context& context, px::ApiUpdateGui& api) override
+		MainMenu(ApiScene& api, Context& ctx) : Scene(api, ctx), m_menu({360, 360})
 		{
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			m_menu.addButton("Play", [&]() {scene.comms.push(SceneId::Platforming, {}); });
+			m_menu.addButton("Level Editor", [&]() {scene.comms.push(SceneId::LevelEditor, {}); });
+			m_menu.addButton("Exit", [&]() {});
+		}
 
-			ImGui::SetNextWindowPos(viewport->Pos);
-			ImGui::SetNextWindowSize(viewport->Size);
-
-			if (ImGui::Begin("##Menu", nullptr,
-				ImGuiWindowFlags_NoDecoration |
-				ImGuiWindowFlags_NoMove |
-				ImGuiWindowFlags_NoResize |
-				ImGuiWindowFlags_NoSavedSettings |
-				ImGuiWindowFlags_NoBackground))
+		void update(px::ApiUpdate& api) override
+		{
+			if (scene.input.isPressed(sf::Keyboard::Scancode::W))
 			{
-				if (ImGui::Button("Play TicTacToe"))
-				{
-					pushScene(SceneId::TicTacToe);
-				}
-				if (ImGui::Button("Platforming!!!"))
-				{
-					pushScene(SceneId::Platforming);
-				}
-				if (ImGui::Button("Tilemap Editor"))
-				{
-					pushScene(SceneId::LevelEditor);
-				}
-				if (ImGui::Button("Exit"))
-				{
-					//api.window.close();
-				}
+				m_menu.moveUp();
 			}
-			ImGui::End();
+			else if (scene.input.isPressed(sf::Keyboard::Scancode::S))
+			{
+				m_menu.moveDown();
+			}
+			else if (scene.input.isPressed(sf::Keyboard::Scancode::Space))
+			{
+				m_menu.activate();
+			}
 		}
 
-		void update(Context& context, px::ApiUpdate& api) override
-		{
-
-		}
-
-		void draw(const Context& context, px::ApiDraw& api) const override
+		void draw(px::ApiDraw& api) const override
 		{
 			api.window.clear(sf::Color(0x222222ff));
 
 			sf::RectangleShape mikuShape(static_cast<sf::Vector2f>(api.window.getSize()));
-			mikuShape.setTexture(&api.textures.texture("player"));
+			mikuShape.setTexture(&api.assets.textures.get("player"));
 
 			api.window.draw(mikuShape);
+
+			m_menu.draw(api);
 		}
+
+	private:
+
+		px::TextMenu m_menu;
 	};
 }

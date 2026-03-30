@@ -6,15 +6,25 @@ namespace Scenes
 {
 	class LevelEditor : public Scene
 	{
-	private:
-		px::Map LE_map;
-		int currentTile = 0;
 	public:
 			
-		LevelEditor(px::ApiScene api) : Scene(api), LE_map(sceneApi.tiles.emptyHandle(), 25, 25) {}
+		LevelEditor(ApiScene api, Context& ctx);
 
-		void updateGui(Context& context, px::ApiUpdateGui& api) override;
-		void update(Context& context, px::ApiUpdate& api) override;
-		void draw(const Context& context, px::ApiDraw& api) const override;
+		void update(px::ApiUpdate& api) override;
+		void draw(px::ApiDraw& api) const override;
+	private:
+
+		px::Grid<Tile> LE_map;
+		int currentTile = 0;
+		int currentMap = 1;
+		std::vector<std::string> maps = {
+			"./resources/maps/1.txt",
+			"./resources/maps/2.txt",
+			"./resources/maps/3.txt",
+		};
+		std::vector<std::string> TileName;
+		std::vector<const char*> TileNameC;
+		std::string mapName = "./resources/maps/" + std::to_string(currentMap) + ".txt";
+
 	};
 }

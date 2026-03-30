@@ -9,5 +9,6 @@ namespace px
 	concept Internal = requires {
 		typename T::Context;
 		typename T::SceneId;
+		typename T::ScenePayload;
 	} && std::is_enum_v<typename T::SceneId>;
 }

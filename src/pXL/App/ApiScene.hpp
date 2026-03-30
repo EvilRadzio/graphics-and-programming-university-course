@@ -1,13 +1,17 @@
 #pragma once
 
+#include "SceneComms.hpp"
+
 namespace px
 {
 	class InputRaw;
-	class TileManager;
+	class Assets;
 
+	template <Internal I>
 	struct ApiScene
 	{
+		SceneComms<I>& comms;
 		const InputRaw& input;
-		const TileManager& tiles;
+		const Assets& assets;
 	};
 }

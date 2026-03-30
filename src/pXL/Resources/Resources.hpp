@@ -3,8 +3,8 @@
 // Resources module depends on world because of TileTextureManager
 #include "../World/World.hpp"
 
-#include "TextureHandle.hpp"
-#include "TextureManager.hpp"
-#include "TileTextureManager.hpp"
-#include "DrawMap.hpp"
-#include "Load.hpp"
+#include "Assets.hpp"
+#include "TileSprite.hpp"
+#include "Clip.hpp"
+#include "SpriteDefinition.hpp"
+#include "SpriteInstance.hpp"
