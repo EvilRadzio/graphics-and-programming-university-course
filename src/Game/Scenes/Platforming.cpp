@@ -30,14 +30,14 @@ Scenes::Platforming::Platforming(ApiScene& api, Context& ctx) :
 	m_map.at({ 5, 4 }) = ctx.tiles.at("solid_block");
 
 	auto player = m_entities.spawn();
-	m_entities.add<Transform>(player, sf::Vector2f(3.5f, 3.5f), sf::Vector2f(0.0f, 0.0f));
-	m_entities.add<Hitbox>(player,
+	player.emplace<Transform>(sf::Vector2f(3.5f, 3.5f), sf::Vector2f(0.0f, 0.0f));
+	player.emplace<Hitbox>(
 		sf::Rect<float>(
 			sf::Vector2f(-0.25f, -0.25f),
 			sf::Vector2f(0.5f, 0.75f)
 		)
 	);
-	m_entities.add<Controllable>(player);
+	player.emplace<Controllable>();
 }
 
 void Scenes::Platforming::update(px::ApiUpdate& api)
@@ -61,20 +61,21 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 	api.window.clear(sf::Color::Blue);
 
 	sf::Vector2u size = m_map.size();
-	uint32_t tileSide = 720 / (size.x / 10);
+	uint32_t tileSide = 720 / size.y;
 
 	for (auto [e, _] : m_entities.view<Controllable>())
 	{
-		const auto& position = m_entities.get<Transform>(e).pos;
+		if (const auto* transform = e.tryGet<Transform>())
+		{
+			api.window.draw(px::Background(scene.assets.backgrounds.get("background"), transform->pos.x * tileSide));
 
-		api.window.draw(px::Background(scene.assets.backgrounds.get("background"), position.x * tileSide));
+			sf::View view(
+				transform->pos * static_cast<float>(api.window.getSize().x / 10.0f),
+				static_cast<sf::Vector2f>(api.window.getSize())
+			);
 
-		sf::View view(
-			position * static_cast<float>(api.window.getSize().x / 10.0f),
-			static_cast<sf::Vector2f>(api.window.getSize())
-		);
-
-		api.window.setView(view);
+			api.window.setView(view);
+		}
 	}
 
 	for (size_t y = 0; y < size.y; ++y) for (size_t x = 0; x < size.x; ++x)
@@ -102,28 +103,30 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 
 	for (auto [entity, _] : m_entities.view<Controllable>())
 	{
-		auto& transform = m_entities.get<Transform>(entity);
-		if (transform.vel.x == 0.0f)
+		if (auto * transform = entity.tryGet<Transform>())
 		{
-			sf::Sprite sprite(api.assets.textures.get("knight"));
-			sprite.setTextureRect(api.assets.entitySprites.get("knight").clips.at("idle").getFrameRect(m_elapsed));
-			auto bounds = sprite.getLocalBounds();
-			auto spriteBounds = api.assets.entitySprites.get("knight").rect;
-			sprite.setPosition(transform.pos * static_cast<float>(tileSide) + static_cast<sf::Vector2f>(spriteBounds.position));
-			sprite.setScale({ spriteBounds.size.x / bounds.size.x, spriteBounds.size.y / bounds.size.y });
+			if (transform->vel.x == 0.0f)
+			{
+				sf::Sprite sprite(api.assets.textures.get("knight"));
+				sprite.setTextureRect(api.assets.entitySprites.get("knight").clips.at("idle").getFrameRect(m_elapsed));
+				auto bounds = sprite.getLocalBounds();
+				auto spriteBounds = api.assets.entitySprites.get("knight").rect;
+				sprite.setPosition(transform->pos * static_cast<float>(tileSide) + static_cast<sf::Vector2f>(spriteBounds.position));
+				sprite.setScale({ spriteBounds.size.x / bounds.size.x, spriteBounds.size.y / bounds.size.y });
 
-			api.window.draw(sprite);
-		}
-		else
-		{
-			sf::Sprite sprite(api.assets.textures.get("knight"));
-			sprite.setTextureRect(api.assets.entitySprites.get("knight").clips.at("run").getFrameRect(m_elapsed));
-			auto bounds = sprite.getLocalBounds();
-			auto spriteBounds = api.assets.entitySprites.get("knight").rect;
-			sprite.setPosition(transform.pos * static_cast<float>(tileSide) + static_cast<sf::Vector2f>(spriteBounds.position));
-			sprite.setScale({ spriteBounds.size.x / bounds.size.x, spriteBounds.size.y / bounds.size.y });
+				api.window.draw(sprite);
+			}
+			else
+			{
+				sf::Sprite sprite(api.assets.textures.get("knight"));
+				sprite.setTextureRect(api.assets.entitySprites.get("knight").clips.at("run").getFrameRect(m_elapsed));
+				auto bounds = sprite.getLocalBounds();
+				auto spriteBounds = api.assets.entitySprites.get("knight").rect;
+				sprite.setPosition(transform->pos * static_cast<float>(tileSide) + static_cast<sf::Vector2f>(spriteBounds.position));
+				sprite.setScale({ spriteBounds.size.x / bounds.size.x, spriteBounds.size.y / bounds.size.y });
 
-			api.window.draw(sprite);
+				api.window.draw(sprite);
+			}
 		}
 	}
 
@@ -141,41 +144,39 @@ void Scenes::Platforming::playerControlSystem(px::ApiUpdate& api)
 
 	for (auto [e, controllable] : m_entities.view<Controllable>())
 	{
-		if (m_entities.has<Transform>(e))
+		if (auto* transform = e.tryGet<Transform>())
 		{
-			auto& transform = m_entities.get<Transform>(e);
-
 			if (m_input.isPressed(Action::Jump) && controllable.canJump)
 			{
-				transform.vel.y = -k_jumpVelocity;
+				transform->vel.y = -k_jumpVelocity;
 				controllable.canJump = false;
 			}
 			else
 			{
-				transform.vel.y = std::min(transform.vel.y + k_downAcceleration * api.dt.asSeconds(), k_maxDownAcceleration);
+				transform->vel.y = std::min(transform->vel.y + k_downAcceleration * api.dt.asSeconds(), k_maxDownAcceleration);
 			}
 
 			int32_t direction = 0 - m_input.isHeld(Action::Left) + m_input.isHeld(Action::Right);
 
-			transform.vel.x += (direction * k_acceleration * api.dt.asSeconds());
+			transform->vel.x += (direction * k_acceleration * api.dt.asSeconds());
 
 			if (!direction)
 			{
-				float newVelocity = std::abs(transform.vel.x) - k_deceleration * api.dt.asSeconds();
+				float newVelocity = std::abs(transform->vel.x) - k_deceleration * api.dt.asSeconds();
 
 				if (newVelocity < 0.0f)
 				{
-					transform.vel.x = 0.0f;
+					transform->vel.x = 0.0f;
 					continue;
 				}
 
-				transform.vel.x = (transform.vel.x > 0.0f ? 1.0f : -1.0f) * newVelocity;
+				transform->vel.x = (transform->vel.x > 0.0f ? 1.0f : -1.0f) * newVelocity;
 				continue;
 			}
 
-			if (std::abs(transform.vel.x) > k_maxSpeed)
+			if (std::abs(transform->vel.x) > k_maxSpeed)
 			{
-				transform.vel.x = (transform.vel.x > 0.0f ? 1.0f : -1.0f) * k_maxSpeed;
+				transform->vel.x = (transform->vel.x > 0.0f ? 1.0f : -1.0f) * k_maxSpeed;
 			}
 		}
 	}
@@ -183,16 +184,16 @@ void Scenes::Platforming::playerControlSystem(px::ApiUpdate& api)
 
 void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 {
-	// The grounded check is stupid but what can you co? will fix it later 
+	// The grounded check is stupid but what can you do? will fix it later 
 	for (auto [e, transform] : m_entities.view<Transform>())
 	{
-		if (!m_entities.has<Hitbox>(e))
+		if (!e.has<Hitbox>())
 		{
 			transform.pos += transform.vel * api.dt.asSeconds();
 			continue;
 		}
 
-		auto rect = m_entities.get<Hitbox>(e).rect;
+		auto rect = e.get<Hitbox>().rect;
 
 		int32_t minY = rect.position.y + transform.pos.y;
 		int32_t maxY = rect.position.y + rect.size.y + transform.pos.y;
@@ -251,9 +252,9 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 		int32_t minX = rect.position.x + transform.pos.x;
 		int32_t maxX = rect.position.x + rect.size.x + transform.pos.x;
 
-		if (m_entities.has<Controllable>(e))
+		if (auto* controllable = e.tryGet<Controllable>())
 		{
-			m_entities.get<Controllable>(e).canJump = false;
+			controllable->canJump = false;
 		}
 
 		if (transform.vel.y < 0.0f)
@@ -309,9 +310,9 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 				else
 				{
 					transform.vel.y = 0.0f;
-					if (m_entities.has<Controllable>(e))
+					if (auto* controllable = e.tryGet<Controllable>())
 					{
-						m_entities.get<Controllable>(e).canJump = true;
+						controllable->canJump = true;
 					}
 				}
 			}
