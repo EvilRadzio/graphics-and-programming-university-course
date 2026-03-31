@@ -5,7 +5,7 @@
 Scenes::Platforming::Platforming(ApiScene& api, Context& ctx) :
 	Scene(api, ctx),
 	m_playerSprite{ "knight", "", {} },
-	m_map(sf::Vector2u(10, 10), ctx.tiles["empty"]),
+	m_map(sf::Vector2u(100, 10), ctx.tiles["empty"]),
 	m_input(api.input)
 {
 	m_input.set(Action::Jump, sf::Keyboard::Scancode::Space);
@@ -61,13 +61,13 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 	api.window.clear(sf::Color::Blue);
 
 	sf::Vector2u size = m_map.size();
-	uint32_t tileSide = 720 / size.x;
+	uint32_t tileSide = 720 / (size.x / 10);
 
 	for (auto [e, _] : m_entities.view<Controllable>())
 	{
 		const auto& position = m_entities.get<Transform>(e).pos;
 
-		api.window.draw(px::Background(scene.assets.backgrounds.get("background"), -position.x * tileSide));
+		api.window.draw(px::Background(scene.assets.backgrounds.get("background"), position.x * tileSide));
 
 		sf::View view(
 			position * static_cast<float>(api.window.getSize().x / 10.0f),

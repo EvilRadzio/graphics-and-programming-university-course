@@ -12,15 +12,13 @@ namespace px
 	{
 	public:
 
-		BackgroundData(std::vector<const sf::Texture*>&& textures, const float speedOffset) :
-			m_textures(std::move(textures)),
-			m_speedOffset(speedOffset)
+		BackgroundData(std::vector<std::pair<const sf::Texture&, float>>&& textures) :
+			m_textures(std::move(textures))
 		{}
 
 	private:
 
-		std::vector<const sf::Texture*> m_textures;
-		float m_speedOffset;
+		std::vector<std::pair<const sf::Texture&, float>> m_textures;
 
 		friend Background;
 	};
@@ -38,18 +36,31 @@ namespace px
 
 		void draw(sf::RenderTarget& target, sf::RenderStates states) const override
 		{
-			float xPosition = m_xPosition;
-			for (const auto* texture : m_data.m_textures)
+			for (const auto& [texture, offset] : m_data.m_textures)
 			{
-				sf::Sprite layer(*texture);
-				const sf::FloatRect bounds = layer.getLocalBounds();
-				const sf::Vector2f size = static_cast<sf::Vector2f>(target.getSize());
-				layer.setScale({ size.y / bounds.size.y, size.y / bounds.size.y});
-				layer.setPosition({ xPosition, 0 });
+				const auto texSize = static_cast<sf::Vector2f>(texture.getSize());
+				const float scale = static_cast<float>(target.getSize().y) / texSize.y;
+				const float width = texSize.x * scale;
+				const float height = texSize.y * scale;
 
-				target.draw(layer);
+				const float textureOffsetX = (m_xPosition / scale) * offset;
 
-				xPosition *= m_data.m_speedOffset;
+				sf::VertexArray quad(sf::PrimitiveType::TriangleStrip, 4);
+
+				quad[0].position = { 0.f, 0.f };
+				quad[1].position = { 0.f, height };
+				quad[2].position = { width, 0.f };
+				quad[3].position = { width, height };
+
+				quad[0].texCoords = { textureOffsetX, 0.f };
+				quad[1].texCoords = { textureOffsetX, texSize.y };
+				quad[2].texCoords = { textureOffsetX + texSize.x, 0.f };
+				quad[3].texCoords = { textureOffsetX + texSize.x, texSize.y };
+
+				sf::RenderStates states;
+				states.texture = &texture;
+
+				target.draw(quad, states);
 			}
 		}
 

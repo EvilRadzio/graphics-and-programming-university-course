@@ -19,6 +19,7 @@ public:
 			{
 				return;
 			}
+			texture.setRepeated(true);
 
 			assets.textures.set(name, std::move(texture));
 
@@ -62,15 +63,14 @@ public:
 		assets.entitySprites.set("knight", std::move(sprite));
 
 		px::BackgroundData background(
-			std::vector<const sf::Texture*>{
-				&assets.textures.get("background/0"),
-				&assets.textures.get("background/1"),
-				&assets.textures.get("background/2"),
-				&assets.textures.get("background/3"),
-				&assets.textures.get("background/4"),
-				&assets.textures.get("background/5")
-			},
-			0.8f
+			{
+				{ assets.textures.get("background/0"), 0.32768f },
+				{ assets.textures.get("background/1"), 0.4096f },
+				{ assets.textures.get("background/2"), 0.512f },
+				{ assets.textures.get("background/3"), 0.64f },
+				{ assets.textures.get("background/4"), 0.8f },
+				{ assets.textures.get("background/5"), 1.0f }
+			}
 		);
 
 		assets.backgrounds.set("background", std::move(background));
