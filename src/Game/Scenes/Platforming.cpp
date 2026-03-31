@@ -29,15 +29,16 @@ Scenes::Platforming::Platforming(ApiScene& api, Context& ctx) :
 	m_map.at({ 2, 5 }) = ctx.tiles.at("solid_block");
 	m_map.at({ 5, 4 }) = ctx.tiles.at("solid_block");
 
-	auto player = m_entities.spawn();
-	player.emplace<Transform>(sf::Vector2f(3.5f, 3.5f), sf::Vector2f(0.0f, 0.0f));
-	player.emplace<Hitbox>(
+	EntityPrefab playerPrefab;
+	playerPrefab.emplace<Transform>(sf::Vector2f(3.5f, 3.5f), sf::Vector2f(0.0f, 0.0f));
+	playerPrefab.emplace<Hitbox>(
 		sf::Rect<float>(
 			sf::Vector2f(-0.25f, -0.25f),
 			sf::Vector2f(0.5f, 0.75f)
 		)
 	);
-	player.emplace<Controllable>();
+	playerPrefab.emplace<Controllable>();
+	m_entities.spawn(playerPrefab);
 }
 
 void Scenes::Platforming::update(px::ApiUpdate& api)
@@ -53,7 +54,7 @@ void Scenes::Platforming::update(px::ApiUpdate& api)
 
 	movementAndColisionSystem(api);
 
-	m_entities.despawn();
+	m_entities.flush();
 }
 
 void Scenes::Platforming::draw(px::ApiDraw& api) const

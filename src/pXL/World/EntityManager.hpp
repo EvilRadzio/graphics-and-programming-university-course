@@ -4,6 +4,9 @@
 #include <unordered_set>
 #include <tuple>
 #include <utility>
+#include <optional>
+#include <array>
+#include <cassert>
 
 #include "pXL/SparseSet.hpp"
 
@@ -23,21 +26,26 @@ namespace px
 		{
 		public:
 
+			bool exists()
+			{
+				return m_manager->contains(*this);
+			}
+
 			void kill()
 			{
 				m_manager->kill(*this);
 			}
 
 			template <typename C>
-			void add(C&& component)
+			void set(C&& component)
 			{
-				m_manager->add<C>(*this, std::move(component));
+				m_manager->set<C>(*this, std::move(component));
 			}
 
 			template <typename C>
-			void add(const C& component)
+			void set(const C& component)
 			{
-				m_manager->add<C>(*this, component);
+				m_manager->set<C>(*this, component);
 			}
 
 			template <typename C, typename ... Args>
@@ -53,7 +61,7 @@ namespace px
 			}
 
 			template <typename C>
-			bool has()
+			bool has() const
 			{
 				return m_manager->has<C>(*this);
 			}
@@ -82,105 +90,61 @@ namespace px
 			size_t m_id{};
 			size_t m_generation{};
 
-			template <typename ...>
 			friend class EntityManager;
 		};
 
-		EntityManager() : m_generations(k_maxEntities, 0)
+		class Prefab
 		{
-			m_freelist.reserve(k_maxEntities);
-			for (int32_t id = k_maxEntities - 1; id >= 0; --id)
+		public:
+
+			template <typename C>
+			void set(C&& component)
 			{
-				m_freelist.push_back(id);
-			}
-		}
-
-		bool contains(Entity entity)
-		{
-			return m_entities.count(entity.m_id) && m_generations[entity.m_id] == entity.m_generation;
-		}
-
-		Entity spawn()
-		{
-			size_t id = m_freelist.back();
-			m_freelist.pop_back();
-			m_entities.insert(id);
-			return Entity(this, id, ++m_generations[id]);
-		}
-
-		void kill(Entity entity)
-		{
-			assert(contains(entity));
-
-			m_killed.push_back(entity.id);
-		}
-
-		void despawn()
-		{
-			for (const auto id : m_killed)
-			{
-				(std::get<ComponentSet<Components>>(m_components).tryPop(id), ...);
-				m_entities.erase(id);
-
-				m_freelist.push_back(id);
+				std::get<std::optional<C>>(m_components) = std::move(component);
 			}
 
-			m_killed.clear();
-		}
+			template <typename C>
+			void set(const C& component)
+			{
+				std::get<std::optional<C>>(m_components) = component;
+			}
 
-		template <typename C>
-		void add(Entity entity, C&& component)
-		{
-			assert(contains(entity));
+			template <typename C, typename ... Args>
+			void emplace(Args&&... args)
+			{
+				std::get<std::optional<C>>(m_components) = C(std::forward<Args>(args) ...);
+			}
 
-			std::get<ComponentSet<C>>(m_components).insert(entity.id, std::move(component));
-		}
+			template <typename C>
+			void remove()
+			{
+				std::get<std::optional<C>>(m_components) = {};
+			}
 
-		template <typename C>
-		void add(Entity entity, const C& component)
-		{
-			assert(contains(entity));
+			template <typename C>
+			bool has() const
+			{
+				return std::get<std::optional<C>>(m_components).has_value();
+			}
 
-			std::get<ComponentSet<C>>(m_components).insert(entity.id, component);
-		}
+			template <typename C>
+			C& get()
+			{
+				return std::get<std::optional<C>>(m_components).value();
+			}
 
-		template <typename C, typename ... Args>
-		void emplace(Entity entity, Args&&... args)
-		{
-			assert(contains(entity));
+			template <typename C>
+			C* tryGet()
+			{
+				return has<C>() ? &get<C>() : nullptr;
+			}
 
-			std::get<ComponentSet<C>>(m_components).emplace(entity.m_id, std::forward<Args>(args)...);
-		}
+		private:
 
-		template <typename C>
-		void remove(Entity entity)
-		{
-			assert(contains(entity));
+			std::tuple<std::optional<Components>...> m_components;
 
-			std::get<ComponentSet<C>>(m_components).popIfContains(entity.m_id);
-		}
-
-		template <typename C>
-		bool has(Entity entity)
-		{
-			assert(contains(entity));
-
-			return std::get<ComponentSet<C>>(m_components).contains(entity.m_id);
-		}
-
-		template <typename C>
-		C& get(Entity entity)
-		{
-			assert(contains(entity));
-
-			return std::get<ComponentSet<C>>(m_components)[entity.m_id];
-		}
-
-		template <typename C>
-		C* tryGet(Entity entity)
-		{
-			return contains(entity) ? &std::get<ComponentSet<C>>(m_components)[entity.m_id] : nullptr;
-		}
+			friend class EntityManager;
+		};
 
 		template <typename T>
 		class View
@@ -207,7 +171,7 @@ namespace px
 
 				Iterator operator++(int)
 				{
-					Iterator temp = m_iterator;
+					Iterator temp = *this;
 					++m_iterator;
 					return temp;
 				}
@@ -220,7 +184,7 @@ namespace px
 
 				Iterator operator--(int)
 				{
-					Iterator temp = m_iterator;
+					Iterator temp = *this;
 					--m_iterator;
 					return temp;
 				}
@@ -262,10 +226,128 @@ namespace px
 			EntityManager* m_manager;
 		};
 
+		EntityManager()
+		{
+			m_generations.fill(0);
+			m_freelist.reserve(k_maxEntities);
+			for (int32_t id = k_maxEntities - 1; id >= 0; --id)
+			{
+				m_freelist.push_back(id);
+			}
+		}
+
+		bool contains(Entity entity) const
+		{
+			return m_entities.count(entity.m_id) && m_generations[entity.m_id] == entity.m_generation;
+		}
+
+		Entity spawn(Prefab&& prefab)
+		{
+			size_t id = m_freelist.back();
+			m_freelist.pop_back();
+			m_queued.emplace_back(id, std::move(prefab));
+			return Entity(this, id, ++m_generations[id]);
+		}
+
+		Entity spawn(const Prefab& prefab)
+		{
+			size_t id = m_freelist.back();
+			m_freelist.pop_back();
+			m_queued.emplace_back(id, prefab);
+			return Entity(this, id, ++m_generations[id]);
+		}
+
+		void kill(Entity entity)
+		{
+			assert(contains(entity));
+
+			m_killed.push_back(entity.m_id);
+		}
+
+		void flush()
+		{
+			for (const auto id : m_killed)
+			{
+				(std::get<ComponentSet<Components>>(m_components).tryPop(id), ...);
+				m_entities.erase(id);
+
+				m_freelist.push_back(id);
+			}
+			m_killed.clear();
+
+			for (const auto& [id, prefab] : m_queued)
+			{
+				((std::get<std::optional<Components>>(prefab.m_components) ?
+					std::get<ComponentSet<Components>>(m_components).insert(id, std::get<std::optional<Components>>(prefab.m_components).value()) : (void)0), ...);
+
+				m_entities.insert(id);
+			}
+			m_queued.clear();
+		}
+
+		template <typename C>
+		void set(Entity entity, C&& component)
+		{
+			assert(contains(entity));
+
+			std::get<ComponentSet<C>>(m_components).insertOrAssign(entity.m_id, std::move(component));
+		}
+
+		template <typename C>
+		void set(Entity entity, const C& component)
+		{
+			assert(contains(entity));
+
+			std::get<ComponentSet<C>>(m_components).insertOrAssign(entity.m_id, component);
+		}
+
+		template <typename C, typename ... Args>
+		void emplace(Entity entity, Args&&... args)
+		{
+			assert(contains(entity));
+
+			std::get<ComponentSet<C>>(m_components).emplace(entity.m_id, std::forward<Args>(args)...);
+		}
+
+		template <typename C>
+		void remove(Entity entity)
+		{
+			assert(contains(entity));
+
+			std::get<ComponentSet<C>>(m_components).popIfContains(entity.m_id);
+		}
+
+		template <typename C>
+		bool has(Entity entity) const
+		{
+			assert(contains(entity));
+
+			return std::get<ComponentSet<C>>(m_components).contains(entity.m_id);
+		}
+
+		template <typename C>
+		C& get(Entity entity)
+		{
+			assert(contains(entity));
+
+			return std::get<ComponentSet<C>>(m_components)[entity.m_id];
+		}
+
+		template <typename C>
+		C* tryGet(Entity entity)
+		{
+			return has<C>(entity) ? &std::get<ComponentSet<C>>(m_components)[entity.m_id] : nullptr;
+		}
+
 		template<typename C>
 		View<C> view()
 		{
 			return View<C>(this);
+		}
+
+		size_t count() const
+		{
+			return m_entities.size();
 		}
 
 		Entity makeEntityFromId(size_t id) {
@@ -276,10 +358,11 @@ namespace px
 
 	private:
 
-		std::vector<size_t> m_generations;
+		std::tuple<ComponentSet<Components>...>m_components;
+		std::unordered_set<size_t> m_entities;
+		std::array<size_t, k_maxEntities> m_generations;
 		std::vector<size_t> m_freelist;
 		std::vector<size_t> m_killed;
-		std::unordered_set<size_t> m_entities;
-		std::tuple<ComponentSet<Components>...>m_components;
+		std::vector<std::pair<size_t, Prefab>> m_queued;
 	};
 }

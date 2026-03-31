@@ -56,7 +56,7 @@ namespace DataStructures
 
 		void insertOrAssign(size_t index, const T& item)
 		{
-			contains(index) ? assign(item) : insert(item);
+			contains(index) ? assign(index, item) : insert(index, item);
 		}
 
 		void pop(size_t index)

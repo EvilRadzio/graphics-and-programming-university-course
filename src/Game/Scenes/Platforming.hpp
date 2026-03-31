@@ -19,30 +19,8 @@ namespace Scenes
 		void playerControlSystem(px::ApiUpdate& api);
 		void movementAndColisionSystem(px::ApiUpdate& api);
 
-		struct Hitbox
-		{
-			sf::Rect<float> rect{};
-		};
-
-		struct Transform
-		{
-			sf::Vector2f pos{};
-			sf::Vector2f vel{};
-		};
-
-		struct Gravity{};
-
-		struct Controllable{
-			bool canJump{};
-		};
-
 		// This mutable is a bandaid fix, the manager needs a const view and const functions
-		mutable px::EntityManager<
-			Hitbox,
-			Transform,
-			Gravity,
-			Controllable
-		> m_entities;
+		mutable EntityManager m_entities;
 
 		px::SpriteInstance m_playerSprite;
 		sf::Time m_elapsed;
