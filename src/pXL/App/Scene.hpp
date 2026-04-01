@@ -31,17 +31,9 @@ namespace px
 		virtual void update(ApiUpdate& api) = 0;
 		virtual void draw(ApiDraw& api) const = 0;
 
-		struct Properties
-		{
-			bool renderThrough{};
-		};
-
-		const Properties& getProperties() const { return properties; }
-
 	protected:
 
 		ApiScene<I> scene;
-		Properties properties;
 		typename I::Context& ctx;
 
 	private:

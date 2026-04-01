@@ -5,7 +5,6 @@
 enum class SceneId : uint8_t
 {
 	MainMenu,
-	TicTacToe,
 	LevelEditor,
 	Platforming,
 	Pause
