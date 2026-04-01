@@ -8,9 +8,12 @@ namespace px
 	class Assets;
 
 	template <Internal I>
+	class SceneCommands;
+
+	template <Internal I>
 	struct ApiScene
 	{
-		SceneComms<I>& comms;
+		SceneCommands<I>& comms;
 		const InputRaw& input;
 		const Assets& assets;
 	};

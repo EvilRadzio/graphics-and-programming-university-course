@@ -112,7 +112,7 @@ namespace px
 		SceneComms<I> sceneComms;
 
 		ApiScene<I> apiScene{
-			sceneComms,
+			scenes,
 			input,
 			assets
 		};

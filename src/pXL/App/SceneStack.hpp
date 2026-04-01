@@ -10,40 +10,98 @@
 
 namespace px
 {
+	namespace impl
+	{
+		enum class SceneAction { Push, Replace, Pop, PopUntil };
+
+		template <Internal I>
+		struct SceneRequest
+		{
+			SceneAction action;
+			std::optional<typename I::SceneId> requested;
+			std::optional<typename I::ScenePayload> payload;
+		};
+	}
+
 	template <Internal I>
-	class SceneStack
+	class SceneCommands
+	{
+	public:
+
+		virtual void push(I::SceneId id) = 0;
+		virtual void push(I::SceneId id, I::ScenePayload payload) = 0;
+		virtual void pop() = 0;
+		virtual void pop(I::ScenePayload payload) = 0;
+		virtual void replace(I::SceneId id) = 0;
+		virtual void replace(I::SceneId id, I::ScenePayload payload) = 0;
+		virtual void popUntil(I::SceneId id) = 0;
+		virtual void popUntil(I::SceneId id, I::ScenePayload payload) = 0;
+	};
+
+	template <Internal I>
+	class SceneStack : public SceneCommands<I>
 	{
 	public:
 
 		using SceneFactory = std::function<std::unique_ptr<Scene<I>>()>;
 
-		void registerScene(typename I::SceneId id, SceneFactory&& factoryFunction) { m_factories[id] = std::move(factoryFunction); }
-		void pushScene(typename I::SceneId id) { assert(m_factories.count(id));  m_scenes.push_back(m_factories[id]()); m_sceneIds.push_back(id); }
+		void push(I::SceneId id) override;
+		void push(I::SceneId id, I::ScenePayload payload) override;
+		void pop() override;
+		void pop(I::ScenePayload payload) override;
+		void replace(I::SceneId id) override;
+		void replace(I::SceneId id, I::ScenePayload payload) override;
+		void popUntil(I::SceneId id) override;
+		void popUntil(I::SceneId id, I::ScenePayload payload) override;
+
+		void registerScene(I::SceneId id, SceneFactory&& factoryFunction) { m_factories[id] = std::move(factoryFunction); }
+		void pushScene(I::SceneId id) { assert(m_factories.count(id));  m_scenes.push_back(m_factories[id]()); m_sceneIds.push_back(id); }
 		void popScene() { assert(!m_scenes.empty());  m_scenes.pop_back(); m_sceneIds.pop_back(); }
 		bool empty() { return m_scenes.empty(); }
 
 		void update(ApiUpdate& api, SceneComms<I>& comms)
 		{
-			if (comms.m_action == SceneComms<I>::Action::Push)
+			if (const impl::SceneRequest<I>* request = m_request.has_value() ? &m_request.value() : nullptr)
 			{
-				const typename I::SceneId requested = comms.m_requested.value();
-				comms.m_action = SceneComms<I>::Action::None;
-				pushScene(requested);
-			}
-			else if (comms.m_action == SceneComms<I>::Action::Pop)
-			{
-				comms.m_action = SceneComms<I>::Action::None;
-				popScene();
-			}
-			else if (comms.m_action == SceneComms<I>::Action::PopUntil)
-			{
-				const typename I::SceneId requested = comms.m_requested.value();
-				comms.m_action = SceneComms<I>::Action::None;
-				
-				while (m_sceneIds.back() != requested)
+				const I::SceneId* requested = request->requested.has_value() ? &request->requested.value() : nullptr;
+
+				switch (request->action)
 				{
-					popScene();
+				case impl::SceneAction::Pop:
+
+					assert(!m_scenes.empty() && "Can't pop a scene from an empty scene stack");
+					m_scenes.pop_back();
+					m_sceneIds.pop_back();
+					break;
+
+				case impl::SceneAction::Push:
+
+					assert(m_factories.count(*requested) && "Can't push an unregistered scene onto a scene stack");
+					m_scenes.push_back(m_factories.at(*requested)());
+					m_sceneIds.push_back(*requested);
+					break;
+
+				case impl::SceneAction::Replace:
+
+					assert(!m_scenes.empty() && m_factories.count(*requested) &&
+						"Can't replace a scene if there is no scene in a scene stack or a requested type is not registered");
+					m_scenes.pop_back();
+					m_scenes.push_back(m_factories.at(*requested)());
+					m_sceneIds.back() = *requested;
+					break;
+
+				case impl::SceneAction::PopUntil:
+
+					while (m_sceneIds.back() != *requested)
+					{
+						assert(!m_scenes.empty() && m_factories.count(*requested) && "Can't pop until a scene that doesn't exist in a scene stack");
+						m_scenes.pop_back();
+						m_sceneIds.pop_back();
+					}
+					break;
 				}
+				m_scenes.back()->onEnter(request->payload.has_value() ? &request->payload.value() : nullptr);
+				m_request = {};
 			}
 
 			assert(!m_scenes.empty());
@@ -78,7 +136,55 @@ namespace px
 		std::unordered_map<typename I::SceneId, SceneFactory> m_factories;
 		std::vector<std::unique_ptr<Scene<I>>> m_scenes;
 		std::vector<typename I::SceneId> m_sceneIds;
-
+		std::optional<impl::SceneRequest<I>> m_request;
 		// ids really shouldn't be in a separate vector
 	};
+
+	template <Internal I>
+	inline void SceneStack<I>::push(I::SceneId id)
+	{
+		m_request = { impl::SceneAction::Push, id, {} };
+	}
+
+	template <Internal I>
+	inline void SceneStack<I>::push(I::SceneId id, I::ScenePayload payload)
+	{
+		m_request = { impl::SceneAction::Push, id, payload };
+	}
+
+	template <Internal I>
+	inline void SceneStack<I>::pop()
+	{
+		m_request = { impl::SceneAction::Pop, {}, {}};
+	}
+
+	template <Internal I>
+	inline void SceneStack<I>::pop(I::ScenePayload payload)
+	{
+		m_request = { impl::SceneAction::Pop, {}, payload };
+	}
+
+	template <Internal I>
+	inline void SceneStack<I>::replace(I::SceneId id)
+	{
+		m_request = { impl::SceneAction::Replace, id, {} };
+	}
+
+	template <Internal I>
+	inline void SceneStack<I>::replace(I::SceneId id, I::ScenePayload payload)
+	{
+		m_request = { impl::SceneAction::Replace, id, payload };
+	}
+
+	template <Internal I>
+	inline void SceneStack<I>::popUntil(I::SceneId id)
+	{
+		m_request = { impl::SceneAction::PopUntil, id, {} };
+	}
+
+	template <Internal I>
+	inline void SceneStack<I>::popUntil(I::SceneId id, I::ScenePayload payload)
+	{
+		m_request = { impl::SceneAction::PopUntil, id, payload };
+	}
 }
