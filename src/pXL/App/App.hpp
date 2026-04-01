@@ -12,5 +12,4 @@
 #include "SceneStack.hpp"
 #include "Client.hpp"
 #include "Load.hpp"
-#include "SceneComms.hpp"
 #include "TextMenu.hpp"

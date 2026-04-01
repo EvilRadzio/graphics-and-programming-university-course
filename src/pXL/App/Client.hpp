@@ -80,7 +80,7 @@ namespace px
 					k_fixedDt
 				};
 
-				scenes.update(updateApi, sceneComms);
+				scenes.update(updateApi);
 
 				postUpdatePreDraw();
 
@@ -109,7 +109,6 @@ namespace px
 		sf::RenderWindow window;
 		SceneStack<I> scenes;
 		InputRaw input;
-		SceneComms<I> sceneComms;
 
 		ApiScene<I> apiScene{
 			scenes,

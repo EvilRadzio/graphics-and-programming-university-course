@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SceneComms.hpp"
+#include "Internal.hpp"
 
 namespace px
 {

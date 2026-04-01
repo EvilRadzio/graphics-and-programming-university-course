@@ -10,6 +10,9 @@
 
 namespace px
 {
+	template <Internal I>
+	class Client;
+
 	namespace impl
 	{
 		enum class SceneAction { Push, Replace, Pop, PopUntil };
@@ -59,7 +62,9 @@ namespace px
 		void popScene() { assert(!m_scenes.empty());  m_scenes.pop_back(); m_sceneIds.pop_back(); }
 		bool empty() { return m_scenes.empty(); }
 
-		void update(ApiUpdate& api, SceneComms<I>& comms)
+	private:
+
+		void update(ApiUpdate& api)
 		{
 			if (const impl::SceneRequest<I>* request = m_request.has_value() ? &m_request.value() : nullptr)
 			{
@@ -131,13 +136,13 @@ namespace px
 			}
 		}
 
-	private:
-
 		std::unordered_map<typename I::SceneId, SceneFactory> m_factories;
 		std::vector<std::unique_ptr<Scene<I>>> m_scenes;
 		std::vector<typename I::SceneId> m_sceneIds;
 		std::optional<impl::SceneRequest<I>> m_request;
 		// ids really shouldn't be in a separate vector
+		
+		friend Client<I>;
 	};
 
 	template <Internal I>
