@@ -10,13 +10,25 @@ namespace Scenes
 
 		MainMenu(ApiScene& api, Context& ctx) : Scene(api, ctx), m_menu({360, 360})
 		{
-			m_menu.addButton("Play", [&]() {scene.comms.push(SceneId::Platforming, {}); });
-			m_menu.addButton("Level Editor", [&]() {scene.comms.push(SceneId::LevelEditor, {}); });
+			m_menu.addButton("Play", [&]() { api.comms.fadeInOut();  m_action = Action::Play; });
+			m_menu.addButton("Level Editor", [&]() { api.comms.fadeInOut();  m_action = Action::LevelEditor; });
 			m_menu.addButton("Exit", [&]() {});
 		}
 
 		void update(px::ApiUpdate& api) override
 		{
+			if (scene.comms.isMidFadeInOut())
+			{
+				if (m_action == Action::Play)
+				{
+					scene.comms.push(SceneId::Platforming);
+				}
+				else if (m_action == Action::LevelEditor)
+				{
+					scene.comms.push(SceneId::LevelEditor);
+				}
+			}
+
 			if (scene.input.isPressed(sf::Keyboard::Scancode::W))
 			{
 				m_menu.moveUp();
@@ -45,6 +57,8 @@ namespace Scenes
 
 	private:
 
+		enum class Action { Play, LevelEditor };
+		Action m_action;
 		px::TextMenu m_menu;
 	};
 }

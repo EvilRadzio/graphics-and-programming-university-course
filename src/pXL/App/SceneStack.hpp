@@ -26,6 +26,9 @@ namespace px
 		virtual void replace(I::SceneId id, I::ScenePayload payload) = 0;
 		virtual void popUntil(I::SceneId id) = 0;
 		virtual void popUntil(I::SceneId id, I::ScenePayload payload) = 0;
+		virtual bool isRequestPending() const = 0;
+		virtual void fadeInOut() = 0;
+		virtual bool isMidFadeInOut() const = 0;
 	};
 
 	class SceneConfig
@@ -36,7 +39,7 @@ namespace px
 	};
 
 	template <Internal I>
-	class SceneStack : public SceneCommands<I>, public SceneConfig
+	class SceneStack final : public SceneCommands<I>, public SceneConfig
 	{
 	public:
 
@@ -50,18 +53,19 @@ namespace px
 		void replace(I::SceneId id, I::ScenePayload payload) override;
 		void popUntil(I::SceneId id) override;
 		void popUntil(I::SceneId id, I::ScenePayload payload) override;
+		bool isRequestPending() const override;
 
 		void registerScene(I::SceneId id, SceneFactory factoryFunction);
 		bool empty() const;
 
 	private:
 
+		void fadeInOut() override;
+		bool isMidFadeInOut() const override;
+
 		void setTransparency(bool transparent) override;
 
-		void pushScene(I::SceneId id);
-		void popScene();
-
-		enum class SceneAction { Push, Replace, Pop, PopUntil };
+		enum class SceneAction : uint8_t { Push, Replace, Pop, PopUntil };
 
 		struct SceneRequest
 		{
@@ -79,6 +83,51 @@ namespace px
 			bool isTransparent{};
 		};
 
+		class Transition
+		{
+		public:
+
+			void update(float dt)
+			{
+				if (m_state == State::BeforeMidpoint)
+				{
+					m_progress += 7.5f * dt;
+					if (m_progress > 1.0f)
+					{
+						m_progress = 1.0f;
+						m_state = State::Midpoint;
+					}
+				}
+				else if (m_state == State::Midpoint)
+				{
+					m_state = State::AfterMidpoint;
+				}
+				else if (m_state == State::AfterMidpoint)
+				{
+					m_progress -= 7.5f * dt;
+					if (m_progress < 0.0f)
+					{
+						m_progress = 0.0f;
+						m_state = State::None;
+					}
+				}
+			}
+
+			void start() { m_state = State::BeforeMidpoint; }
+			float getProgress() const { return m_progress; }
+			bool isMidpoint() const { return m_state == State::Midpoint; }
+
+		private:
+
+			enum class State : uint8_t { None, BeforeMidpoint, Midpoint, AfterMidpoint };
+
+			State m_state{};
+			float m_progress{};
+		};
+
+		void pushScene(I::SceneId id);
+		void popScene();
+
 		void flush();
 		void update(ApiUpdate& api);
 		void draw(ApiDraw& api) const;
@@ -86,6 +135,7 @@ namespace px
 		std::unordered_map<typename I::SceneId, SceneFactory> m_factories;
 		std::vector<SceneInstance> m_scenes;
 		std::optional<SceneRequest> m_request;
+		Transition m_transition;
 		
 		friend Client<I>;
 	};
@@ -139,6 +189,12 @@ namespace px
 	}
 
 	template <Internal I>
+	inline bool SceneStack<I>::isRequestPending() const
+	{
+		return m_request.has_value();
+	}
+
+	template <Internal I>
 	inline void SceneStack<I>::registerScene(I::SceneId id, SceneFactory factoryFunction)
 	{
 		m_factories.insert_or_assign(id, std::move(factoryFunction));
@@ -148,6 +204,18 @@ namespace px
 	inline bool SceneStack<I>::empty() const
 	{
 		return m_scenes.empty();
+	}
+
+	template <Internal I>
+	inline void SceneStack<I>::fadeInOut()
+	{
+		m_transition.start();
+	}
+
+	template <Internal I>
+	inline bool SceneStack<I>::isMidFadeInOut() const
+	{
+		return m_transition.isMidpoint();
 	}
 
 	template <Internal I>
@@ -214,6 +282,8 @@ namespace px
 	template <Internal I>
 	inline void SceneStack<I>::update(ApiUpdate& api)
 	{
+		m_transition.update(api.dt.asSeconds());
+
 		assert(!m_scenes.empty() && "Can't run update() a scene if the scene stack is empty");
 
 		m_scenes.back().ptr->update(api);
@@ -235,5 +305,9 @@ namespace px
 		{
 			m_scenes[i].ptr->draw(api);
 		}
+
+		sf::RectangleShape blackRect(static_cast<sf::Vector2f>(api.window.getSize()));
+		blackRect.setFillColor(sf::Color(0, 0, 0, 255 * m_transition.getProgress()));
+		api.window.draw(blackRect);
 	}
 }
