@@ -47,10 +47,10 @@ namespace px
 		{
 			sf::Clock clock;
 
-			clock.restart();
-
 			while (window.isOpen())
 			{
+				scenes.flush();
+
 				preEvent();
 
 				input.newTick();
@@ -113,7 +113,8 @@ namespace px
 		ApiScene<I> apiScene{
 			scenes,
 			input,
-			assets
+			assets,
+			scenes
 		};
 
 	private:

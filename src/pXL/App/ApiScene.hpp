@@ -10,11 +10,14 @@ namespace px
 	template <Internal I>
 	class SceneCommands;
 
+	class SceneConfig;
+
 	template <Internal I>
 	struct ApiScene
 	{
 		SceneCommands<I>& comms;
 		const InputRaw& input;
 		const Assets& assets;
+		SceneConfig& properties;
 	};
 }

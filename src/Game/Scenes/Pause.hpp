@@ -10,7 +10,7 @@ namespace Scenes
 
 		Pause(ApiScene& api, Context& ctx) : Scene(api, ctx), m_menu({360, 260})
 		{
-			api.comms.setTopSceneTransparency(true);
+			api.properties.setTransparency(true);
 
 			m_menu.addButton("Resume", [&]() {scene.comms.pop({}); });
 			m_menu.addButton("Exit", [&]() {scene.comms.popUntil(SceneId::MainMenu, {}); });
