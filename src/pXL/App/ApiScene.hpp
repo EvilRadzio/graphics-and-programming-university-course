@@ -11,6 +11,7 @@ namespace px
 	class SceneCommands;
 
 	class SceneConfig;
+	class Transition;
 
 	template <Internal I>
 	struct ApiScene
@@ -19,5 +20,6 @@ namespace px
 		const InputRaw& input;
 		const Assets& assets;
 		SceneConfig& properties;
+		Transition& transition;
 	};
 }

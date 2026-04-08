@@ -10,6 +10,7 @@
 
 #include "SceneStack.hpp"
 #include "InputRaw.hpp"
+#include "Transition.hpp"
 
 namespace px
 {
@@ -47,12 +48,14 @@ namespace px
 		sf::RenderWindow window;
 		SceneStack<I> scenes;
 		InputRaw input;
+		Transition transition;
 
 		ApiScene<I> apiScene{
 			scenes,
 			input,
 			assets,
-			scenes
+			scenes,
+			transition
 		};
 
 	private:
@@ -110,9 +113,12 @@ namespace px
 
 			ImGui::SFML::Update(window, realDt);
 
+			transition.update(k_fixedDt.asSeconds());
+
 			ApiUpdate updateApi{
 				window,
-				k_fixedDt
+				k_fixedDt,
+				transition
 			};
 
 			scenes.update(updateApi);
@@ -129,6 +135,8 @@ namespace px
 			scenes.draw(drawApi);
 
 			ImGui::SFML::Render(window);
+
+			window.draw(transition);
 
 			window.display();
 

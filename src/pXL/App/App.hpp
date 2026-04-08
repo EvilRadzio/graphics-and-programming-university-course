@@ -11,4 +11,5 @@
 #include "Scene.hpp"
 #include "SceneStack.hpp"
 #include "Client.hpp"
+#include "Transition.hpp"
 #include "TextMenu.hpp"

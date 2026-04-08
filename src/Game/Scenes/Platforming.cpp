@@ -27,6 +27,7 @@ Scenes::Platforming::Platforming(ApiScene& api, Context& ctx) :
 	m_map.at({ 6, 7 }) = ctx.tiles.at("solid_block");
 	m_map.at({ 2, 5 }) = ctx.tiles.at("solid_block");
 	m_map.at({ 5, 4 }) = ctx.tiles.at("solid_block");
+	m_map.at({ 9, 8 }) = ctx.tiles.at("solid_block");
 
 	EntityPrefab playerPrefab;
 	playerPrefab.emplace<Transform>(sf::Vector2f(3.5f, 3.5f), sf::Vector2f(0.0f, 0.0f));
@@ -109,7 +110,7 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 			{
 				px::Sprite sprite(api.assets.sprites.get("knight"), "idle", m_elapsed);
 				sprite.setScale({ 4,4 });
-				sprite.setOrigin({ 19, 19 });
+				sprite.setOrigin({ 16, 19 });
 				sprite.setPosition(transform->pos * static_cast<float>(tileSide));
 
 				if (m_dir < 0) sprite.setMirrored(true);
@@ -120,7 +121,7 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 			{
 				px::Sprite sprite(api.assets.sprites.get("knight"), "run", m_elapsed);
 				sprite.setScale({ 4,4 });
-				sprite.setOrigin({ 19, 19 });
+				sprite.setOrigin({ 16, 19 });
 				sprite.setPosition(transform->pos * static_cast<float>(tileSide));
 
 				if (m_dir < 0) sprite.setMirrored(true);
