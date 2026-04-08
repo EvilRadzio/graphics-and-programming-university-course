@@ -58,7 +58,16 @@ namespace px
 
 		void readEvent(const sf::Event& e)
 		{
-			if (e.is<sf::Event::KeyPressed>())
+			if (e.is<sf::Event::FocusLost>())
+			{
+				m_keyboardHeld.reset();
+				m_keyboardPressed.reset();
+				m_keyboardReleased.reset();
+				m_mouseHeld.reset();
+				m_mousePressed.reset();
+				m_mouseReleased.reset();
+			}
+			else if (e.is<sf::Event::KeyPressed>())
 			{
 				const auto scan = e.getIf<sf::Event::KeyPressed>();
 

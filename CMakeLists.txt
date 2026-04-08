@@ -44,6 +44,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
+FetchContent_Declare(
+	entt
+	GIT_REPOSITORY https://github.com/skypjack/entt
+	GIT_TAG v3.16.0
+)
+FetchContent_MakeAvailable(entt)
+
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES}
@@ -52,7 +59,7 @@ add_executable(${PROJECT_NAME} ${SOURCES}
 
 target_include_directories(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/src"
-	${nlohmann_json_SOURCE_DIR}/include
+	#${nlohmann_json_SOURCE_DIR}/include
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -60,6 +67,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	SFML::System
 	ImGui-SFML::ImGui-SFML
 	#SFML::Main
+	nlohmann_json
+	EnTT::EnTT
 )
 
 file(COPY ${CMAKE_SOURCE_DIR}/resources/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
