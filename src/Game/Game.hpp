@@ -13,7 +13,7 @@ public:
 
 	Game()
 	{
-		px::Load::recursive("resources/textures", [&](const auto& path, const auto& name) {
+		recursiveLoad("resources/textures", [&](const auto& path, const auto& name) {
 			sf::Texture texture;
 			if (!texture.loadFromFile(path))
 			{

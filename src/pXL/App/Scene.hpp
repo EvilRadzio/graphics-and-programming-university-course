@@ -28,7 +28,8 @@ namespace px
 		virtual ~Scene() = default;
 
 		virtual void onEnter(const I::ScenePayload* payload) {}
-		virtual void update(ApiUpdate& api) = 0;
+		virtual void update(ApiUpdate& api) {}
+		virtual void fixedUpdate(ApiUpdate& api) {}
 		virtual void draw(ApiDraw& api) const = 0;
 
 	protected:
