@@ -22,10 +22,11 @@ namespace Scenes
 		// This mutable is a bandaid fix, the manager needs a const view and const functions
 		mutable EntityManager m_entities;
 
-		px::SpriteInstance m_playerSprite;
 		sf::Time m_elapsed;
 
 		Map m_map;
+
+		int32_t m_dir{ 1 };
 
 		enum class Action : uint8_t
 		{

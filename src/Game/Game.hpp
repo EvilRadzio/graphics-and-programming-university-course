@@ -52,14 +52,16 @@ public:
 			}
 		}
 
-		std::unordered_map<std::string, px::Clip> clips{
-			{"idle", px::Clip(true, std::move(idle))},
-			{"run", px::Clip(true, std::move(run))}
-		};
+		px::Clip idleClip(std::move(idle));
+		idleClip.setLooping(true);
+		px::Clip runClip(std::move(run));
+		runClip.setLooping(true);
 
-		px::SpriteDefinition sprite{ std::move(clips), "knight", sf::IntRect({-72, -90}, {144, 144}) };
+		px::SpriteData animations(assets.textures.get("knight"));
+		animations.setClip("idle", std::move(idleClip));
+		animations.setClip("run", std::move(runClip));
 
-		assets.entitySprites.set("knight", std::move(sprite));
+		assets.sprites.set("knight", std::move(animations));
 
 		px::BackgroundData background(
 			{

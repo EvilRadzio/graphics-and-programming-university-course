@@ -4,7 +4,6 @@
 
 Scenes::Platforming::Platforming(ApiScene& api, Context& ctx) :
 	Scene(api, ctx),
-	m_playerSprite{ "knight", "", {} },
 	m_map(sf::Vector2u(100, 10), ctx.tiles["empty"]),
 	m_input(api.input)
 {
@@ -108,23 +107,23 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 		{
 			if (transform->vel.x == 0.0f)
 			{
-				sf::Sprite sprite(api.assets.textures.get("knight"));
-				sprite.setTextureRect(api.assets.entitySprites.get("knight").clips.at("idle").getFrameRect(m_elapsed));
-				auto bounds = sprite.getLocalBounds();
-				auto spriteBounds = api.assets.entitySprites.get("knight").rect;
-				sprite.setPosition(transform->pos * static_cast<float>(tileSide) + static_cast<sf::Vector2f>(spriteBounds.position));
-				sprite.setScale({ spriteBounds.size.x / bounds.size.x, spriteBounds.size.y / bounds.size.y });
+				px::Sprite sprite(api.assets.sprites.get("knight"), "idle", m_elapsed);
+				sprite.setScale({ 4,4 });
+				sprite.setOrigin({ 19, 19 });
+				sprite.setPosition(transform->pos * static_cast<float>(tileSide));
+
+				if (m_dir < 0) sprite.setMirrored(true);
 
 				api.window.draw(sprite);
 			}
 			else
 			{
-				sf::Sprite sprite(api.assets.textures.get("knight"));
-				sprite.setTextureRect(api.assets.entitySprites.get("knight").clips.at("run").getFrameRect(m_elapsed));
-				auto bounds = sprite.getLocalBounds();
-				auto spriteBounds = api.assets.entitySprites.get("knight").rect;
-				sprite.setPosition(transform->pos * static_cast<float>(tileSide) + static_cast<sf::Vector2f>(spriteBounds.position));
-				sprite.setScale({ spriteBounds.size.x / bounds.size.x, spriteBounds.size.y / bounds.size.y });
+				px::Sprite sprite(api.assets.sprites.get("knight"), "run", m_elapsed);
+				sprite.setScale({ 4,4 });
+				sprite.setOrigin({ 19, 19 });
+				sprite.setPosition(transform->pos * static_cast<float>(tileSide));
+
+				if (m_dir < 0) sprite.setMirrored(true);
 
 				api.window.draw(sprite);
 			}
@@ -158,6 +157,8 @@ void Scenes::Platforming::playerControlSystem(px::ApiUpdate& api)
 			}
 
 			int32_t direction = 0 - m_input.isHeld(Action::Left) + m_input.isHeld(Action::Right);
+
+			m_dir = direction != 0 ? direction : m_dir;
 
 			transform->vel.x += (direction * k_acceleration * api.dt.asSeconds());
 
