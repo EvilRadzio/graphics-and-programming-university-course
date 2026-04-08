@@ -110,7 +110,7 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 			{
 				px::Sprite sprite(api.assets.sprites.get("knight"), "idle", m_elapsed);
 				sprite.setScale({ 4,4 });
-				sprite.setOrigin({ 16, 19 });
+				sprite.setOrigin({ 16, 23 });
 				sprite.setPosition(transform->pos * static_cast<float>(tileSide));
 
 				if (m_dir < 0) sprite.setMirrored(true);
@@ -121,7 +121,7 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 			{
 				px::Sprite sprite(api.assets.sprites.get("knight"), "run", m_elapsed);
 				sprite.setScale({ 4,4 });
-				sprite.setOrigin({ 16, 19 });
+				sprite.setOrigin({ 16, 23 });
 				sprite.setPosition(transform->pos * static_cast<float>(tileSide));
 
 				if (m_dir < 0) sprite.setMirrored(true);

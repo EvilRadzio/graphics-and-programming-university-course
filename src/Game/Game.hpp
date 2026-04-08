@@ -37,19 +37,12 @@ public:
 
 		assets.tileSprites.set("solid_block", px::TileSprite{ "tiles/moss_on_cobble_tileset" });
 
-		std::vector<px::Frame> idle;
-		for (int32_t x = 0; x < 4; ++x)
-		{
-			idle.push_back({ sf::IntRect({x * 32, 0}, {32, 32}), sf::milliseconds(200) });
-		}
+		std::vector<px::Frame> idle{ {{{ 0, 32  }, { 32, 32 }}, sf::milliseconds(200)} };
 
 		std::vector<px::Frame> run;
-		for (int32_t y = 2; y < 4; ++y)
+		for (int32_t x = 0; x < 10; ++x)
 		{
-			for (int32_t x = 0; x < 8; ++x)
-			{
-				run.push_back({ sf::IntRect({x * 32, y * 32}, {32, 32}), sf::milliseconds(125) });
-			}
+			run.push_back({ sf::IntRect({x * 32, 0}, {32, 32}), sf::milliseconds(75) });
 		}
 
 		px::Clip idleClip(std::move(idle));
@@ -57,7 +50,7 @@ public:
 		px::Clip runClip(std::move(run));
 		runClip.setLooping(true);
 
-		px::SpriteData animations(assets.textures.get("knight"));
+		px::SpriteData animations(assets.textures.get("entities/player"));
 		animations.setClip("idle", std::move(idleClip));
 		animations.setClip("run", std::move(runClip));
 
