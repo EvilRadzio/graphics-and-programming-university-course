@@ -10,8 +10,8 @@ namespace Scenes
 
 		MainMenu(ApiScene& api, Context& ctx) : Scene(api, ctx), m_menu({360, 360})
 		{
-			m_menu.addButton("Play", [&]() {scene.comms.push(SceneId::Platforming, {}); });
-			m_menu.addButton("Level Editor", [&]() {scene.comms.push(SceneId::LevelEditor, {}); });
+			m_menu.addButton("Play", [&]() { api.transition.start([&]() { scene.comms.push(SceneId::Platforming); }); });
+			m_menu.addButton("Level Editor", [&]() { api.transition.start([&]() { scene.comms.push(SceneId::LevelEditor); }); });
 			m_menu.addButton("Exit", [&]() {});
 		}
 

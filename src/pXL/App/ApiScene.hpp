@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SceneComms.hpp"
+#include "Internal.hpp"
 
 namespace px
 {
@@ -8,10 +8,18 @@ namespace px
 	class Assets;
 
 	template <Internal I>
+	class SceneCommands;
+
+	class SceneConfig;
+	class Transition;
+
+	template <Internal I>
 	struct ApiScene
 	{
-		SceneComms<I>& comms;
+		SceneCommands<I>& comms;
 		const InputRaw& input;
 		const Assets& assets;
+		SceneConfig& properties;
+		Transition& transition;
 	};
 }

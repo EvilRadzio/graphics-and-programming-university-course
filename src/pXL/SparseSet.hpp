@@ -12,160 +12,213 @@ namespace DataStructures
 	class SparseSet
 	{
 	public:
-		SparseSet() : m_Sparse(CAPACITY, k_Empty)
+
+		SparseSet()
 		{
-			m_Dense.reserve(CAPACITY);
-			m_Data.reserve(CAPACITY);
+			m_sparse.fill(k_empty);
+			m_dense.reserve(CAPACITY);
+			m_data.reserve(CAPACITY);
 		}
 
 		void insert(size_t index, const T& item)
 		{
 			assert(index < CAPACITY);
-			assert(m_Sparse[index] == k_Empty);
+			assert(m_sparse[index] == k_empty);
 
-			m_Data.push_back(item);
-			m_Dense.push_back(index);
-			m_Sparse[index] = m_Data.size() - 1;
+			m_data.push_back(item);
+			m_dense.push_back(index);
+			m_sparse[index] = m_data.size() - 1;
 		}
 
 		template <typename ... Args>
 		void emplace(size_t index, Args&&... args)
 		{
 			assert(index < CAPACITY);
-			assert(m_Sparse[index] == k_Empty);
+			assert(m_sparse[index] == k_empty);
 
-			m_Data.emplace_back(std::forward<Args>(args)...);
-			m_Dense.push_back(index);
-			m_Sparse[index] = m_Data.size() - 1;
+			m_data.emplace_back(std::forward<Args>(args)...);
+			m_dense.push_back(index);
+			m_sparse[index] = m_data.size() - 1;
+		}
+
+		void assign(size_t index, const T& item)
+		{
+			assert(index < CAPACITY);
+			assert(m_sparse[index] != k_empty);
+
+			m_data[index] = item;
 		}
 
 		bool contains(size_t index) const
 		{
-			return m_Sparse[index] != k_Empty;
+			return m_sparse[index] != k_empty;
+		}
+
+		void insertOrAssign(size_t index, const T& item)
+		{
+			contains(index) ? assign(index, item) : insert(index, item);
 		}
 
 		void pop(size_t index)
 		{
 			assert(index < CAPACITY);
 
-			const size_t denseIndex = m_Sparse[index];
+			const size_t denseIndex = m_sparse[index];
 
-			if (denseIndex == m_Data.size() - 1)
+			if (denseIndex == m_data.size() - 1)
 			{
-				m_Sparse[index] = k_Empty;
-				m_Dense.pop_back();
-				m_Data.pop_back();
+				m_sparse[index] = k_empty;
+				m_dense.pop_back();
+				m_data.pop_back();
 				return;
 			}
 
-			const size_t lastDenseIndex = m_Data.size() - 1;
-			const size_t lastSparseIndex = m_Dense[lastDenseIndex];
+			const size_t lastDenseIndex = m_data.size() - 1;
+			const size_t lastSparseIndex = m_dense[lastDenseIndex];
 
-			std::swap(m_Data[denseIndex], m_Data.back());
+			std::swap(m_data[denseIndex], m_data.back());
 
-			m_Dense[denseIndex] = lastSparseIndex;
-			m_Sparse[lastSparseIndex] = denseIndex;
+			m_dense[denseIndex] = lastSparseIndex;
+			m_sparse[lastSparseIndex] = denseIndex;
 
-			m_Data.pop_back();
-			m_Dense.pop_back();
-			m_Sparse[index] = k_Empty;
+			m_data.pop_back();
+			m_dense.pop_back();
+			m_sparse[index] = k_empty;
 		}
 
-		bool popIfContains(size_t index)
+		bool tryPop(size_t index)
 		{
 			if (!contains(index)) return false;
 
 			pop(index);
+
 			return true;
 		}
 
 		const T& at(size_t index) const
 		{
 			assert(index < CAPACITY);
-			return m_Data[m_Sparse[index]];
+			return m_data[m_sparse[index]];
 		}
 
 		T& operator[](size_t index)
 		{
-			return m_Data[m_Sparse[index]];
+			assert(index < CAPACITY);
+			return m_data[m_sparse[index]];
 		}
 
 		bool empty() const
 		{
-			return m_Data.empty();
+			return m_data.empty();
 		}
 
 		void clear()
 		{
-			m_Sparse.assign(CAPACITY, k_Empty);
-			m_Dense.clear();
-			m_Data.clear();
+			m_sparse.fill(k_empty);
+			m_dense.clear();
+			m_data.clear();
 		}
 
-		class Iterator
+		size_t size() const
+		{
+			return m_dense.size();
+		}
+
+		size_t capacity() const
+		{
+			return CAPACITY;
+		}
+
+		class View
 		{
 		public:
 
-			Iterator(SparseSet* set, size_t index) : m_Index(index), m_Set(set) {}
-
-			size_t index() const
-			{
-				return m_Index;
+			View(SparseSet* set)
+				: m_set(set) {
 			}
 
-			T& data() const
+			class Iterator
 			{
-				return m_Set->m_Data[m_Index];
+			public:
+
+				Iterator(SparseSet* set, size_t index) :
+					m_index(index),
+					m_set(set)
+				{}
+
+				Iterator& operator++()
+				{
+					++m_index;
+					return *this;
+				}
+
+				Iterator operator++(int)
+				{
+					Iterator temp = *this;
+					++m_index;
+					return temp;
+				}
+
+				Iterator& operator--()
+				{
+					--m_index;
+					return *this;
+				}
+
+				Iterator operator--(int)
+				{
+					Iterator temp = *this;
+					--m_index;
+					return temp;
+				}
+
+				std::pair<size_t, T&> operator*() const
+				{
+					return std::pair<size_t, T&>{ m_index, (*m_set)[m_index] };
+				}
+
+				bool operator==(const Iterator& o) const
+				{
+					return m_index == o.m_index && m_set == o.m_set;
+				}
+
+				bool operator!=(const Iterator& o) const
+				{
+					return !(*this == o);
+				}
+
+			private:
+
+				size_t m_index;
+				SparseSet* m_set;
+			};
+
+			Iterator begin()
+			{
+				return Iterator(m_set, 0);
 			}
 
-			std::pair<size_t, T&> operator*() const
+			Iterator end()
 			{
-				return { m_Set->m_Dense[m_Index], m_Set->m_Data[m_Index] };
-			}
-
-			Iterator& operator++()
-			{
-				++m_Index;
-				return *this;
-			}
-
-			bool operator==(const Iterator& o) const
-			{
-				return m_Index == o.m_Index && m_Set == o.m_Set;
-			}
-
-			bool operator!=(const Iterator& o) const
-			{
-				return !(*this == o);
+				return Iterator(m_set, m_set->size());
 			}
 
 		private:
 
+			SparseSet* m_set;
+
 			friend SparseSet;
-			size_t m_Index;
-			SparseSet<T, CAPACITY>* m_Set;
 		};
 
-		Iterator begin()
+		View view()
 		{
-			return Iterator(this, 0);
-		}
-
-		Iterator end()
-		{
-			return Iterator(this, m_Data.size());
-		}
-
-		Iterator popIterator(const Iterator& it)
-		{
-			pop(it.m_Index);
-			return it;
+			return View(this);
 		}
 
 	private:
-		static constexpr size_t k_Empty = std::numeric_limits<size_t>::max();
-		std::vector<size_t> m_Sparse;
-		std::vector<size_t> m_Dense;
-		std::vector<T> m_Data;
+		static constexpr size_t k_empty = std::numeric_limits<size_t>::max();
+		std::array<size_t, CAPACITY> m_sparse;
+		std::vector<size_t> m_dense;
+		std::vector<T> m_data;
 	};
 }

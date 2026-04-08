@@ -13,12 +13,13 @@ public:
 
 	Game()
 	{
-		px::Load::recursive("resources/textures", [&](const auto& path, const auto& name) {
+		recursiveLoad("resources/textures", [&](const auto& path, const auto& name) {
 			sf::Texture texture;
 			if (!texture.loadFromFile(path))
 			{
 				return;
 			}
+			texture.setRepeated(true);
 
 			assets.textures.set(name, std::move(texture));
 
@@ -26,11 +27,10 @@ public:
 		});
 
 		scenes.registerScene(SceneId::MainMenu, [&]() { return std::make_unique<Scenes::MainMenu>(apiScene, ctx); });
-		scenes.registerScene(SceneId::TicTacToe, [&]() { return std::make_unique<Scenes::TicTacToe>(apiScene, ctx); });
 		scenes.registerScene(SceneId::LevelEditor, [&]() { return std::make_unique<Scenes::LevelEditor>(apiScene, ctx); });
 		scenes.registerScene(SceneId::Platforming, [&]() { return std::make_unique<Scenes::Platforming>(apiScene, ctx); });
 		scenes.registerScene(SceneId::Pause, [&]() {return std::make_unique<Scenes::Pause>(apiScene, ctx); });
-		scenes.pushScene(SceneId::MainMenu);
+		scenes.push(SceneId::MainMenu);
 
 		ctx.tiles["empty"] = Tile{Tile::Type::Air, "", "empty"};
 		ctx.tiles["solid_block"] = Tile{ Tile::Type::Solid, "solid_block", "solid_block"};
@@ -52,14 +52,29 @@ public:
 			}
 		}
 
-		std::unordered_map<std::string, px::Clip> clips{
-			{"idle", px::Clip(true, std::move(idle))},
-			{"run", px::Clip(true, std::move(run))}
-		};
+		px::Clip idleClip(std::move(idle));
+		idleClip.setLooping(true);
+		px::Clip runClip(std::move(run));
+		runClip.setLooping(true);
 
-		px::SpriteDefinition sprite{ std::move(clips), "knight", sf::IntRect({-72, -90}, {144, 144}) };
+		px::SpriteData animations(assets.textures.get("knight"));
+		animations.setClip("idle", std::move(idleClip));
+		animations.setClip("run", std::move(runClip));
 
-		assets.entitySprites.set("knight", std::move(sprite));
+		assets.sprites.set("knight", std::move(animations));
+
+		px::BackgroundData background(
+			{
+				{ assets.textures.get("background/0"), 0.32768f },
+				{ assets.textures.get("background/1"), 0.4096f },
+				{ assets.textures.get("background/2"), 0.512f },
+				{ assets.textures.get("background/3"), 0.64f },
+				{ assets.textures.get("background/4"), 0.8f },
+				{ assets.textures.get("background/5"), 1.0f }
+			}
+		);
+
+		assets.backgrounds.set("background", std::move(background));
 
 		assets.font = sf::Font("resources/Butterpop.otf");
 	}

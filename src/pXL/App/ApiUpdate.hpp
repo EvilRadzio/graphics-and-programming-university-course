@@ -9,9 +9,12 @@ namespace sf
 
 namespace px
 {
+	class Transition;
+
 	struct ApiUpdate
 	{
 		const sf::Window& window;
 		const sf::Time dt;
+		Transition& transition;
 	};
 }
