@@ -5,7 +5,7 @@
 
 Scenes::LevelEditor::LevelEditor(ApiScene api, Context& ctx) :
 	Scene(api, ctx),
-	LE_map(sf::Vector2u(25, 25), ctx.tiles["empty"]) 
+	LE_map(sf::Vector2u(mapWidth, mapHeight), ctx.tiles["empty"]) 
 {
 	for (const auto& [tilename, _ ] : ctx.tiles) {
 		TileName.push_back(tilename);
@@ -15,8 +15,8 @@ Scenes::LevelEditor::LevelEditor(ApiScene api, Context& ctx) :
 	if (!loadedMap) {
 		std::cout << "bad file" << std::endl;
 	}
-	for (unsigned int y = 0; y < 25; y++) {
-		for (unsigned int x = 0; x < 25; x++)
+	for (unsigned int y = 0; y < mapHeight; y++) {
+		for (unsigned int x = 0; x < mapWidth; x++)
 		{
 			std::string loadedId;
 			loadedMap >> loadedId;
@@ -29,6 +29,7 @@ Scenes::LevelEditor::LevelEditor(ApiScene api, Context& ctx) :
 			}
 		}
 	}
+	lastMousePos = scene.input.getMousePosition();
 }
 
 void Scenes::LevelEditor::update(px::ApiUpdate& api)
@@ -39,9 +40,21 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 		{
 			scene.comms.pop({});
 		}
+		
+		
 
-		//ImGui::DragInt("##d", &currentTile, 0.5f, 0, 1);
+		static int prevWidth = mapWidth;
+		static int prevHeight = mapHeight;
 
+		ImGui::DragInt("##mapheight", &mapHeight, 0.5f,25,100);
+		if (ImGui::IsItemDeactivatedAfterEdit) {
+			resizeMap();
+		}
+		ImGui::DragInt("##mapWidth", &mapWidth, 0.5f, 25, 100);
+		if (ImGui::IsItemDeactivatedAfterEdit) {
+			resizeMap();
+		}
+		
 		//----
 		static bool item_highlight = false;
 		int item_highlighted_idx = -1;
@@ -58,6 +71,7 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 				if (is_selected)
 					ImGui::SetItemDefaultFocus();
 			}
+			
 			ImGui::EndListBox();
 			
 			if (ImGui::BeginListBox("Choose map"))
@@ -76,8 +90,11 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 				ImGui::EndListBox();
 			}
 			//ImGui::DragInt("##mCurrentMap", &currentMap, 1.f, 0, 2);
+			static char buf5[32] = ""; ImGui::InputText("no blank", buf5, sizeof(buf5), ImGuiInputTextFlags_CharsNoBlank);
 
-
+			//if (ImGui::Button("New")) {
+			//	std::ofstream newMap()
+			//}
 			if (ImGui::Button("Save")) {
 
 				//std::filesystem::path path(mapName);
@@ -85,8 +102,8 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 				std::ofstream Save(mapName);
 				
 				
-				for (unsigned int x = 0; x < 25; x++) {
-					for (unsigned int y = 0; y < 25; y++) {
+				for (unsigned int y = 0; y < mapHeight; y++) {
+					for (unsigned int x = 0; x < mapWidth; x++) {
 						Save << LE_map.at({ x , y }).tileName << " ";
 					}
 					Save << std::endl;
@@ -101,8 +118,8 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 				if (LoadedMap.fail()) {
 					std::cout << "No such map" << std::endl;
 				}
-				for (unsigned int y = 0; y < 25; y++) {
-					for (unsigned int x = 0; x < 25; x++)
+				for (unsigned int y = 0; y < mapHeight; y++) {
+					for (unsigned int x = 0; x < mapWidth; x++)
 					{
 						std::string loadedId;
 						LoadedMap >> loadedId;
@@ -117,31 +134,44 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 				}
 			}
 		}
+		
 		ImGui::End();
+		
 	}
 
 	sf::Rect<int> rect{
-		sf::Vector2i(0,0), sf::Vector2i(28,28)
+		sf::Vector2i(0,0), sf::Vector2i((windowSize / mapHeight),(windowSize / mapHeight))
 	};
 
 	sf::Vector2i mousePosition = scene.input.getMousePosition();
-	for (unsigned int y = 0; y < 25; y++) {
-		for (unsigned int x = 0; x < 25; x++) {
-			rect.position = sf::Vector2i(x * 28, y * 28);
+	mousePosition += viewPosition;
+
+	for (unsigned int y = 0; y < mapHeight; y++) {
+		for (unsigned int x = 0; x < mapWidth; x++) {
+			rect.position = sf::Vector2i(x * (windowSize / mapHeight), y * (windowSize / mapHeight));
 			if (scene.input.isPressed(sf::Mouse::Button::Left) && rect.contains(mousePosition)) {
-				sf::Vector2u MP = sf::Vector2u(mousePosition / (720 / 25));
+				sf::Vector2u MP = sf::Vector2u(mousePosition / (windowSize / mapHeight));
 				LE_map.at(MP) = ctx.tiles.at(TileName[currentTile]);
 				//LE_map.set(MP, sceneApi.tiles.handle("solid_block")); //change it to currentTile later.
 
 			}
 		}
 	}
+
+	sf::Vector2i currMousePos = scene.input.getMousePosition();
+	if (scene.input.isHeld(sf::Mouse::Button::Right)) {
+		sf::Vector2i mouseDiff = lastMousePos - currMousePos;
+		viewPosition += mouseDiff;
+	}
+	lastMousePos = currMousePos;
+
 }
 
 void Scenes::LevelEditor::draw(px::ApiDraw& api) const
-{
-	uint32_t tileSide = 720 / LE_map.size().x;
-
+{	
+	sf::View view(sf::FloatRect{ (sf::Vector2f)viewPosition, (sf::Vector2f)api.window.getSize() });
+	uint32_t tileSide = windowSize / LE_map.size().x;
+	api.window.setView(view);
 	for (size_t y = 0; y < LE_map.size().y; ++y) for (size_t x = 0; x < LE_map.size().x; ++x)
 	{
 		sf::Vector2u position(x, y);
@@ -164,3 +194,18 @@ void Scenes::LevelEditor::draw(px::ApiDraw& api) const
 		}
 	}
 }
+
+void Scenes::LevelEditor::resizeMap() {
+	auto oldMap = LE_map;
+
+	LE_map = px::Grid<Tile>(sf::Vector2u(mapWidth, mapHeight), ctx.tiles.at("empty"));
+
+	for (unsigned int y = 0; y < std::min(oldMap.size().y, LE_map.size().y); y++)
+	{
+		for (unsigned int x = 0; x < std::min(oldMap.size().x, LE_map.size().x); x++)
+		{
+			LE_map.at({ x, y }) = oldMap.at({ x, y });
+		}
+	}
+}
+
