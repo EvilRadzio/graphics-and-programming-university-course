@@ -16,13 +16,3 @@ struct Internal
 
 using Scene = px::Scene<Internal>;
 using ApiScene = px::ApiScene<Internal>;
-
-using EntityManager = px::EntityManager<
-	::Hitbox,
-	::Transform,
-	::Gravity,
-	::Controllable
->;
-
-using EntityPrefab = EntityManager::Prefab;
-using EntityHandle = EntityManager::Entity;

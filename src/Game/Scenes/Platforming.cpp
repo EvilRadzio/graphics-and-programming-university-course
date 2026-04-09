@@ -29,16 +29,13 @@ Scenes::Platforming::Platforming(ApiScene& api, Context& ctx) :
 	m_map.at({ 5, 4 }) = ctx.tiles.at("solid_block");
 	m_map.at({ 9, 8 }) = ctx.tiles.at("solid_block");
 
-	EntityPrefab playerPrefab;
-	playerPrefab.emplace<Transform>(sf::Vector2f(3.5f, 3.5f), sf::Vector2f(0.0f, 0.0f));
-	playerPrefab.emplace<Hitbox>(
-		sf::Rect<float>(
-			sf::Vector2f(-0.25f, -0.25f),
-			sf::Vector2f(0.5f, 0.75f)
-		)
-	);
-	playerPrefab.emplace<Controllable>();
-	m_entities.spawn(playerPrefab);
+	auto player = m_registry.create();
+	m_registry.emplace<Transform>(player, sf::Vector2f(3.5f, 3.5f), sf::Vector2f(0.0f, 0.0f));
+	m_registry.emplace<Hitbox>(player, sf::Rect<float>(
+		sf::Vector2f(-0.25f, -0.25f),
+		sf::Vector2f(0.5f, 0.75f)
+	));
+	m_registry.emplace<Controllable>(player);
 }
 
 void Scenes::Platforming::update(px::ApiUpdate& api)
@@ -53,8 +50,6 @@ void Scenes::Platforming::update(px::ApiUpdate& api)
 	playerControlSystem(api);
 
 	movementAndColisionSystem(api);
-
-	m_entities.flush();
 }
 
 void Scenes::Platforming::draw(px::ApiDraw& api) const
@@ -64,20 +59,18 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 	sf::Vector2u size = m_map.size();
 	uint32_t tileSide = 720 / size.y;
 
-	for (auto [e, _] : m_entities.view<Controllable>())
-	{
-		if (const auto* transform = e.tryGet<Transform>())
-		{
-			api.window.draw(px::Background(scene.assets.backgrounds.get("background"), transform->pos.x * tileSide));
+	auto view = m_registry.view<const Controllable, const Transform>();
+	
+	view.each([&](const auto& _, const auto& transform) {
+		api.window.draw(px::Background(scene.assets.backgrounds.get("background"), transform.pos.x * tileSide));
 
-			sf::View view(
-				transform->pos * static_cast<float>(api.window.getSize().x / 10.0f),
-				static_cast<sf::Vector2f>(api.window.getSize())
-			);
+		sf::View view(
+			transform.pos * static_cast<float>(api.window.getSize().x / 10.0f),
+			static_cast<sf::Vector2f>(api.window.getSize())
+		);
 
-			api.window.setView(view);
-		}
-	}
+		api.window.setView(view);
+	});
 
 	for (size_t y = 0; y < size.y; ++y) for (size_t x = 0; x < size.x; ++x)
 	{
@@ -102,34 +95,30 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 		}
 	}
 
-	for (auto [entity, _] : m_entities.view<Controllable>())
-	{
-		if (auto * transform = entity.tryGet<Transform>())
+	view.each([&](const auto& _, const auto& transform) {
+		if (transform.vel.x == 0.0f)
 		{
-			if (transform->vel.x == 0.0f)
-			{
-				px::Sprite sprite(api.assets.sprites.get("knight"), "idle", m_elapsed);
-				sprite.setScale({ 4,4 });
-				sprite.setOrigin({ 16, 23 });
-				sprite.setPosition(transform->pos * static_cast<float>(tileSide));
+			px::Sprite sprite(api.assets.sprites.get("knight"), "idle", m_elapsed);
+			sprite.setScale({ 4,4 });
+			sprite.setOrigin({ 16, 23 });
+			sprite.setPosition(transform.pos * static_cast<float>(tileSide));
 
-				if (m_dir < 0) sprite.setMirrored(true);
+			if (m_dir < 0) sprite.setMirrored(true);
 
-				api.window.draw(sprite);
-			}
-			else
-			{
-				px::Sprite sprite(api.assets.sprites.get("knight"), "run", m_elapsed);
-				sprite.setScale({ 4,4 });
-				sprite.setOrigin({ 16, 23 });
-				sprite.setPosition(transform->pos * static_cast<float>(tileSide));
-
-				if (m_dir < 0) sprite.setMirrored(true);
-
-				api.window.draw(sprite);
-			}
+			api.window.draw(sprite);
 		}
-	}
+		else
+		{
+			px::Sprite sprite(api.assets.sprites.get("knight"), "run", m_elapsed);
+			sprite.setScale({ 4,4 });
+			sprite.setOrigin({ 16, 23 });
+			sprite.setPosition(transform.pos * static_cast<float>(tileSide));
+
+			if (m_dir < 0) sprite.setMirrored(true);
+
+			api.window.draw(sprite);
+		}
+	});
 
 	api.window.setView(api.window.getDefaultView());
 }
@@ -143,60 +132,54 @@ void Scenes::Platforming::playerControlSystem(px::ApiUpdate& api)
 	constexpr float k_downAcceleration = 30.0f;
 	constexpr float k_maxDownAcceleration = 20.0f;
 
-	for (auto [e, controllable] : m_entities.view<Controllable>())
-	{
-		if (auto* transform = e.tryGet<Transform>())
+	auto view = m_registry.view<Controllable, Transform>();
+
+	view.each([&](auto& controllable, auto& transform) {
+		if (m_input.isPressed(Action::Jump) && controllable.canJump)
 		{
-			if (m_input.isPressed(Action::Jump) && controllable.canJump)
-			{
-				transform->vel.y = -k_jumpVelocity;
-				controllable.canJump = false;
-			}
-			else
-			{
-				transform->vel.y = std::min(transform->vel.y + k_downAcceleration * api.dt.asSeconds(), k_maxDownAcceleration);
-			}
-
-			int32_t direction = 0 - m_input.isHeld(Action::Left) + m_input.isHeld(Action::Right);
-
-			m_dir = direction != 0 ? direction : m_dir;
-
-			transform->vel.x += (direction * k_acceleration * api.dt.asSeconds());
-
-			if (!direction)
-			{
-				float newVelocity = std::abs(transform->vel.x) - k_deceleration * api.dt.asSeconds();
-
-				if (newVelocity < 0.0f)
-				{
-					transform->vel.x = 0.0f;
-					continue;
-				}
-
-				transform->vel.x = (transform->vel.x > 0.0f ? 1.0f : -1.0f) * newVelocity;
-				continue;
-			}
-
-			if (std::abs(transform->vel.x) > k_maxSpeed)
-			{
-				transform->vel.x = (transform->vel.x > 0.0f ? 1.0f : -1.0f) * k_maxSpeed;
-			}
+			transform.vel.y = -k_jumpVelocity;
+			controllable.canJump = false;
 		}
-	}
+		else
+		{
+			transform.vel.y = std::min(transform.vel.y + k_downAcceleration * api.dt.asSeconds(), k_maxDownAcceleration);
+		}
+
+		int32_t direction = 0 - m_input.isHeld(Action::Left) + m_input.isHeld(Action::Right);
+
+		m_dir = direction != 0 ? direction : m_dir;
+
+		transform.vel.x += (direction * k_acceleration * api.dt.asSeconds());
+
+		if (!direction)
+		{
+			float newVelocity = std::abs(transform.vel.x) - k_deceleration * api.dt.asSeconds();
+
+			if (newVelocity < 0.0f)
+			{
+				transform.vel.x = 0.0f;
+				return;
+			}
+
+			transform.vel.x = (transform.vel.x > 0.0f ? 1.0f : -1.0f) * newVelocity;
+			return;
+		}
+
+		if (std::abs(transform.vel.x) > k_maxSpeed)
+		{
+			transform.vel.x = (transform.vel.x > 0.0f ? 1.0f : -1.0f) * k_maxSpeed;
+		}
+	});
 }
 
 void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 {
-	// The grounded check is stupid but what can you do? will fix it later 
-	for (auto [e, transform] : m_entities.view<Transform>())
-	{
-		if (!e.has<Hitbox>())
-		{
-			transform.pos += transform.vel * api.dt.asSeconds();
-			continue;
-		}
+	// The grounded check is stupid but what can you do? will fix it later
 
-		auto rect = e.get<Hitbox>().rect;
+	auto view = m_registry.view<Transform, Hitbox, Controllable>();
+
+	view.each([&](auto& transform, auto& hitbox, auto& controllable) {
+		sf::FloatRect rect = hitbox.rect;
 
 		int32_t minY = rect.position.y + transform.pos.y;
 		int32_t maxY = rect.position.y + rect.size.y + transform.pos.y;
@@ -255,10 +238,7 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 		int32_t minX = rect.position.x + transform.pos.x;
 		int32_t maxX = rect.position.x + rect.size.x + transform.pos.x;
 
-		if (auto* controllable = e.tryGet<Controllable>())
-		{
-			controllable->canJump = false;
-		}
+		controllable.canJump = false;
 
 		if (transform.vel.y < 0.0f)
 		{
@@ -313,14 +293,11 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 				else
 				{
 					transform.vel.y = 0.0f;
-					if (auto* controllable = e.tryGet<Controllable>())
-					{
-						controllable->canJump = true;
-					}
+					controllable.canJump = true;
 				}
 			}
 
 			transform.pos.y = currentY - (rect.size.y + rect.position.y);
 		}
-	}
+	});
 }

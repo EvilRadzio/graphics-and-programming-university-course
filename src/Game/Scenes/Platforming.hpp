@@ -1,5 +1,7 @@
 #pragma once
 
+#include <entt/entt.hpp>
+
 #include "Game/Types.hpp"
 #include "Game/Map.hpp"
 
@@ -19,8 +21,7 @@ namespace Scenes
 		void playerControlSystem(px::ApiUpdate& api);
 		void movementAndColisionSystem(px::ApiUpdate& api);
 
-		// This mutable is a bandaid fix, the manager needs a const view and const functions
-		mutable EntityManager m_entities;
+		entt::registry m_registry;
 
 		sf::Time m_elapsed;
 
