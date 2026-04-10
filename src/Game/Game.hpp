@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include <spdlog/spdlog.h>
+
 #include "pXL/pXL.hpp"
 
 #include "Game/Context.hpp"
@@ -23,7 +25,7 @@ public:
 
 			assets.textures.set(name, std::move(texture));
 
-			std::cout << "Loaded: " << name << std::endl;
+			SPDLOG_INFO("Texture loaded: {}", name);
 		});
 
 		scenes.registerScene("MainMenu", [&]() { return std::make_unique<Scenes::MainMenu>(apiScene); });

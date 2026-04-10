@@ -16,7 +16,7 @@ namespace px
 	public:
 
 		using ButtonAction = std::function<void()>;
-
+		
 		TextMenu(sf::Vector2f position) : m_position(position) {}
 
 		void addButton(const std::string& name, ButtonAction&& action)
