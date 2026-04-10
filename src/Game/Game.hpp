@@ -4,7 +4,7 @@
 
 #include "pXL/pXL.hpp"
 
-#include "Types.hpp"
+#include "Game/Context.hpp"
 #include "Scenes/Scenes.hpp"
 
 class Game : public px::Client

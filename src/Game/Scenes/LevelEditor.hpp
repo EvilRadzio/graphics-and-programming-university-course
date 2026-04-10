@@ -1,6 +1,9 @@
 #pragma once
 
-#include "Game/Types.hpp"
+#include "pXL/pXL.hpp"
+
+#include "Game/Context.hpp"
+#include "Game/Tile.hpp"
 
 namespace Scenes
 {

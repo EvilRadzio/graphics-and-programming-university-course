@@ -2,9 +2,6 @@
 
 #include "../Resources/Resources.hpp"
 
-#include "ApiDraw.hpp"
-#include "ApiScene.hpp"
-#include "ApiUpdate.hpp"
 #include "InputRaw.hpp"
 #include "InputMapping.hpp"
 #include "Scene.hpp"

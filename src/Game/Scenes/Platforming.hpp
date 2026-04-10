@@ -2,8 +2,12 @@
 
 #include <entt/entt.hpp>
 
-#include "Game/Types.hpp"
+#include "pXL/pXL.hpp"
+
+#include "Game/Context.hpp"
+#include "Game/Tile.hpp"
 #include "Game/Map.hpp"
+#include "Game/Components.hpp"
 
 namespace Scenes
 {

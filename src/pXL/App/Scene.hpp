@@ -3,17 +3,42 @@
 #include <optional>
 #include <any>
 
-#include "ApiDraw.hpp"
-#include "ApiScene.hpp"
-#include "ApiUpdate.hpp"
-
 namespace sf
 {
-	class RenderWindow;
+	class RenderTarget;
+	class Window;
 }
 
 namespace px
 {
+	class InputRaw;
+	class Assets;
+	class SceneCommands;
+	class SceneConfig;
+	class Transition;
+
+	struct ApiDraw
+	{
+		sf::RenderTarget& window;
+		const Assets& assets;
+	};
+
+	struct ApiUpdate
+	{
+		const sf::Window& window;
+		const sf::Time dt;
+		Transition& transition;
+	};
+
+	struct ApiScene
+	{
+		SceneCommands& comms;
+		const InputRaw& input;
+		const Assets& assets;
+		SceneConfig& properties;
+		Transition& transition;
+	};
+
 	class SceneStack;
 
 	class Scene

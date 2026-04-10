@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Game/Types.hpp"
+#include "pXL/pXL.hpp"
 
 namespace Scenes
 {
