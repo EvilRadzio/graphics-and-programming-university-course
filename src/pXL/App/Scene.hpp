@@ -1,8 +1,8 @@
 #pragma once
 
 #include <optional>
+#include <any>
 
-#include "Internal.hpp"
 #include "ApiDraw.hpp"
 #include "ApiScene.hpp"
 #include "ApiUpdate.hpp"
@@ -14,31 +14,26 @@ namespace sf
 
 namespace px
 {
-	template <Internal I>
 	class SceneStack;
 
-	// Add input and visual passthrough
-
-	template <Internal I>
 	class Scene
 	{
 	public:
 
-		Scene(const ApiScene<I>& api, typename I::Context& ctx) : scene(api), ctx(ctx) {}
+		Scene(const ApiScene& api) : scene(api) {}
 		virtual ~Scene() = default;
 
-		virtual void onEnter(const I::ScenePayload* payload) {}
+		virtual void onEnter(std::any&& payload) {}
 		virtual void update(ApiUpdate& api) {}
 		virtual void fixedUpdate(ApiUpdate& api) {}
 		virtual void draw(ApiDraw& api) const = 0;
 
 	protected:
 
-		ApiScene<I> scene;
-		typename I::Context& ctx;
+		ApiScene scene;
 
 	private:
 
-		friend SceneStack<I>;
+		friend SceneStack;
 	};
 }

@@ -2,9 +2,10 @@
 
 #include "Platforming.hpp"
 
-Scenes::Platforming::Platforming(ApiScene& api, Context& ctx) :
-	Scene(api, ctx),
-	m_map(sf::Vector2u(100, 10), ctx.tiles["empty"]),
+Scenes::Platforming::Platforming(px::ApiScene& api, Context& ctx) :
+	Scene(api),
+	m_ctx(ctx),
+	m_map(sf::Vector2u(100, 10), m_ctx.tiles["empty"]),
 	m_input(api.input)
 {
 	m_input.set(Action::Jump, sf::Keyboard::Scancode::Space);
@@ -17,17 +18,17 @@ Scenes::Platforming::Platforming(ApiScene& api, Context& ctx) :
 		{
 			if (x == 0 || x == m_map.size().x - 1 || y == 0 || y == m_map.size().y - 1)
 			{
-				m_map.at({ x, y }) = ctx.tiles["solid_block"];
+				m_map.at({ x, y }) = m_ctx.tiles["solid_block"];
 			}
 		}
 	}
 
-	m_map.at({ 7, 7 }) = ctx.tiles.at("solid_block");
-	m_map.at({ 4, 3 }) = ctx.tiles.at("solid_block");
-	m_map.at({ 6, 7 }) = ctx.tiles.at("solid_block");
-	m_map.at({ 2, 5 }) = ctx.tiles.at("solid_block");
-	m_map.at({ 5, 4 }) = ctx.tiles.at("solid_block");
-	m_map.at({ 9, 8 }) = ctx.tiles.at("solid_block");
+	m_map.at({ 7, 7 }) = m_ctx.tiles.at("solid_block");
+	m_map.at({ 4, 3 }) = m_ctx.tiles.at("solid_block");
+	m_map.at({ 6, 7 }) = m_ctx.tiles.at("solid_block");
+	m_map.at({ 2, 5 }) = m_ctx.tiles.at("solid_block");
+	m_map.at({ 5, 4 }) = m_ctx.tiles.at("solid_block");
+	m_map.at({ 9, 8 }) = m_ctx.tiles.at("solid_block");
 
 	auto player = m_registry.create();
 	m_registry.emplace<Transform>(player, sf::Vector2f(3.5f, 3.5f), sf::Vector2f(0.0f, 0.0f));
@@ -42,7 +43,7 @@ void Scenes::Platforming::update(px::ApiUpdate& api)
 {
 	if (scene.input.isPressed(sf::Keyboard::Scancode::Escape))
 	{
-		scene.comms.push(SceneId::Pause, {});
+		scene.comms.push("Pause", {});
 	}
 
 	m_elapsed += api.dt;

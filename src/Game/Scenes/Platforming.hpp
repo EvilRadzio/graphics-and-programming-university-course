@@ -7,11 +7,11 @@
 
 namespace Scenes
 {
-	class Platforming : public Scene
+	class Platforming : public px::Scene
 	{
 	public:
 
-		Platforming(ApiScene& api, Context& ctx);
+		Platforming(px::ApiScene& api, Context& ctx);
 
 		void update(px::ApiUpdate& api) override;
 		void draw(px::ApiDraw& api) const override;
@@ -20,6 +20,8 @@ namespace Scenes
 
 		void playerControlSystem(px::ApiUpdate& api);
 		void movementAndColisionSystem(px::ApiUpdate& api);
+
+		Context& m_ctx;
 
 		entt::registry m_registry;
 

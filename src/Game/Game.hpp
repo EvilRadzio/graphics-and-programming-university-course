@@ -7,7 +7,7 @@
 #include "Types.hpp"
 #include "Scenes/Scenes.hpp"
 
-class Game : public px::Client<Internal>
+class Game : public px::Client
 {
 public:
 
@@ -26,14 +26,14 @@ public:
 			std::cout << "Loaded: " << name << std::endl;
 		});
 
-		scenes.registerScene(SceneId::MainMenu, [&]() { return std::make_unique<Scenes::MainMenu>(apiScene, ctx); });
-		scenes.registerScene(SceneId::LevelEditor, [&]() { return std::make_unique<Scenes::LevelEditor>(apiScene, ctx); });
-		scenes.registerScene(SceneId::Platforming, [&]() { return std::make_unique<Scenes::Platforming>(apiScene, ctx); });
-		scenes.registerScene(SceneId::Pause, [&]() {return std::make_unique<Scenes::Pause>(apiScene, ctx); });
-		scenes.push(SceneId::MainMenu);
+		scenes.registerScene("MainMenu", [&]() { return std::make_unique<Scenes::MainMenu>(apiScene); });
+		scenes.registerScene("LevelEditor", [&]() { return std::make_unique<Scenes::LevelEditor>(apiScene, m_ctx); });
+		scenes.registerScene("Platforming", [&]() { return std::make_unique<Scenes::Platforming>(apiScene, m_ctx); });
+		scenes.registerScene("Pause", [&]() {return std::make_unique<Scenes::Pause>(apiScene); });
+		scenes.push("MainMenu");
 
-		ctx.tiles["empty"] = Tile{Tile::Type::Air, "", "empty"};
-		ctx.tiles["solid_block"] = Tile{ Tile::Type::Solid, "solid_block", "solid_block"};
+		m_ctx.tiles["empty"] = Tile{Tile::Type::Air, "", "empty"};
+		m_ctx.tiles["solid_block"] = Tile{ Tile::Type::Solid, "solid_block", "solid_block"};
 
 		assets.tileSprites.set("solid_block", px::TileSprite{ "tiles/moss_on_cobble_tileset" });
 
@@ -71,4 +71,8 @@ public:
 
 		assets.font = sf::Font("resources/Butterpop.otf");
 	}
+
+private:
+
+	Context m_ctx;
 };

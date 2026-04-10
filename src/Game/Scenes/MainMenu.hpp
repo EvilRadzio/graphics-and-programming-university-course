@@ -4,14 +4,14 @@
 
 namespace Scenes
 {
-	class MainMenu : public Scene
+	class MainMenu : public px::Scene
 	{
 	public:
 
-		MainMenu(ApiScene& api, Context& ctx) : Scene(api, ctx), m_menu({360, 360})
+		MainMenu(px::ApiScene& api) : Scene(api), m_menu({360, 360})
 		{
-			m_menu.addButton("Play", [&]() { api.transition.start([&]() { scene.comms.push(SceneId::Platforming); }); });
-			m_menu.addButton("Level Editor", [&]() { api.transition.start([&]() { scene.comms.push(SceneId::LevelEditor); }); });
+			m_menu.addButton("Play", [&]() { api.transition.start([&]() { scene.comms.push("Platforming"); }); });
+			m_menu.addButton("Level Editor", [&]() { api.transition.start([&]() { scene.comms.push("LevelEditor"); }); });
 			m_menu.addButton("Exit", [&]() {});
 		}
 

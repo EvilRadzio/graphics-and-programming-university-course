@@ -3,8 +3,9 @@
 #include <fstream>
 #include <filesystem>
 
-Scenes::LevelEditor::LevelEditor(ApiScene api, Context& ctx) :
-	Scene(api, ctx),
+Scenes::LevelEditor::LevelEditor(px::ApiScene api, Context& ctx) :
+	Scene(api),
+	ctx(ctx),
 	LE_map(sf::Vector2u(mapWidth, mapHeight), ctx.tiles["empty"]) 
 {
 	for (const auto& [tilename, _ ] : ctx.tiles) {

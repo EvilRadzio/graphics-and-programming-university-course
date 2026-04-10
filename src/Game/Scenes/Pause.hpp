@@ -4,16 +4,16 @@
 
 namespace Scenes
 {
-	class Pause : public Scene
+	class Pause : public px::Scene
 	{
 	public:
 
-		Pause(ApiScene& api, Context& ctx) : Scene(api, ctx), m_menu({360, 260})
+		Pause(px::ApiScene& api) : Scene(api), m_menu({360, 260})
 		{
 			api.properties.setTransparency(true);
 
-			m_menu.addButton("Resume", [&]() {scene.comms.pop({}); });
-			m_menu.addButton("Exit", [&]() {scene.comms.popUntil(SceneId::MainMenu, {}); });
+			m_menu.addButton("Resume", [&]() {scene.comms.pop(); });
+			m_menu.addButton("Exit", [&]() {scene.comms.popUntil("MainMenu"); });
 		}
 
 		void update(px::ApiUpdate& api) override

@@ -14,7 +14,6 @@
 
 namespace px
 {
-	template <Internal I>
 	class Client
 	{
 	public:
@@ -42,15 +41,13 @@ namespace px
 			std::function<void(const std::filesystem::path& path,
 				const std::string& name)>&& call);
 
-		typename I::Context ctx;
-
 		Assets assets;
 		sf::RenderWindow window;
-		SceneStack<I> scenes;
+		SceneStack scenes;
 		InputRaw input;
 		Transition transition;
 
-		ApiScene<I> apiScene{
+		ApiScene apiScene{
 			scenes,
 			input,
 			assets,
@@ -64,8 +61,7 @@ namespace px
 		static constexpr sf::Time k_fixedDt = sf::microseconds(1000000 / k_tps);
 	};
 
-	template <Internal I>
-	inline Client<I>::Client() :
+	inline Client::Client() :
 		window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game", sf::Style::Close)
 	{
 		window.setKeyRepeatEnabled(false);
@@ -74,14 +70,12 @@ namespace px
 		ImGui::GetIO().FontGlobalScale = 2.0f;
 	}
 
-	template <Internal I>
-	inline Client<I>::~Client()
+	inline Client::~Client()
 	{
 		ImGui::SFML::Shutdown();
 	}
 
-	template <Internal I>
-	inline void Client<I>::run()
+	inline void Client::run()
 	{
 		sf::Clock clock;
 
@@ -144,8 +138,7 @@ namespace px
 		}
 	}
 
-	template <Internal I>
-	inline void Client<I>::recursiveLoad(const std::string& directoryPath, std::function<void(const std::filesystem::path& path, const std::string& name)>&& call)
+	inline void Client::recursiveLoad(const std::string& directoryPath, std::function<void(const std::filesystem::path& path, const std::string& name)>&& call)
 	{
 		if (!std::filesystem::exists(directoryPath))
 		{

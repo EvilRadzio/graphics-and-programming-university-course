@@ -4,16 +4,17 @@
 
 namespace Scenes
 {
-	class LevelEditor : public Scene
+	class LevelEditor : public px::Scene
 	{
 	public:
 			
-		LevelEditor(ApiScene api, Context& ctx);
+		LevelEditor(px::ApiScene api, Context& ctx);
 
 		void update(px::ApiUpdate& api) override;
 		void draw(px::ApiDraw& api) const override;
 		void resizeMap();
 	private:
+		Context& ctx;
 		sf::Vector2i lastMousePos;
 		sf::Vector2i viewPosition{0,0};
 		int windowSize = 720;
