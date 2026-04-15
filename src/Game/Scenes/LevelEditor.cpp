@@ -2,34 +2,23 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include "Game/Map.hpp"
+#include <spdlog/spdlog.h>
+
 
 Scenes::LevelEditor::LevelEditor(px::ApiScene api, Context& ctx) :
 	Scene(api),
 	ctx(ctx),
 	LE_map(sf::Vector2u(mapWidth, mapHeight), ctx.tiles["empty"]) 
 {
+	
 	for (const auto& [tilename, _ ] : ctx.tiles) {
 		TileName.push_back(tilename);
 	}
-	//for (int i = 0; i < TileName.size(); i++) { TileNameC[i] = TileName.at(i); }
-	std::fstream loadedMap(mapName);
-	if (!loadedMap) {
-		std::cout << "bad file" << std::endl;
-	}
-	for (unsigned int y = 0; y < mapHeight; y++) {
-		for (unsigned int x = 0; x < mapWidth; x++)
-		{
-			std::string loadedId;
-			loadedMap >> loadedId;
-			if (ctx.tiles.contains(loadedId)) {
-				LE_map.at({ x,y }) = ctx.tiles.at(loadedId);
-			}
-			else {
-				std::cout << "Unknown Tile" << std::endl;
-				LE_map.at({ x,y }) = ctx.tiles.at("empty");
-			}
-		}
-	}
+	
+	
+	LE_tiles = ctx.tiles;
+
 	lastMousePos = scene.input.getMousePosition();
 }
 
@@ -56,7 +45,7 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 			resizeMap();
 		}
 		
-		//----
+		
 		static bool item_highlight = false;
 		int item_highlighted_idx = -1;
 		if (ImGui::BeginListBox("Choose tile"))
@@ -82,6 +71,7 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 					const bool is_selected = (currentMap == n);
 					if (ImGui::Selectable(maps[n].c_str(), is_selected))
 						currentMap = n;
+						mapName = maps[currentMap];
 					if (item_highlight && ImGui::IsItemHovered())
 						item_highlighted_idx = n;
 
@@ -97,42 +87,14 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 			//	std::ofstream newMap()
 			//}
 			if (ImGui::Button("Save")) {
-
-				//std::filesystem::path path(mapName);
-				//std::cout << std::filesystem::absolute(path) << std::endl;	//Check File Path
-				std::ofstream Save(mapName);
-				
-				
-				for (unsigned int y = 0; y < mapHeight; y++) {
-					for (unsigned int x = 0; x < mapWidth; x++) {
-						Save << LE_map.at({ x , y }).tileName << " ";
-					}
-					Save << std::endl;
-				}
+				saveMap(mapName, LE_map);
 			}
 
 			if (ImGui::Button("Load")) {
+				LE_map = loadMap(mapName, LE_tiles);
+				SPDLOG_INFO("Map size after load: {}x{}", LE_map.size().x, LE_map.size().y);
+				SPDLOG_INFO("Tile [0,0]: {}", LE_map.at({ 0,0 }).tileName);
 
-				//std::filesystem::path path(mapName);
-				//std::cout << std::filesystem::absolute(path) << std::endl;	//Check File Path
-				std::ifstream LoadedMap(mapName);
-				if (LoadedMap.fail()) {
-					std::cout << "No such map" << std::endl;
-				}
-				for (unsigned int y = 0; y < mapHeight; y++) {
-					for (unsigned int x = 0; x < mapWidth; x++)
-					{
-						std::string loadedId;
-						LoadedMap >> loadedId;
-						if (ctx.tiles.contains(loadedId)) {
-							LE_map.at({ x,y }) = ctx.tiles.at(loadedId);
-						}
-						else {
-							std::cout << "Unknown Tile" << std::endl;
-							LE_map.at({ x,y }) = ctx.tiles.at("empty");
-						}
-					}
-				}
 			}
 		}
 		
@@ -165,6 +127,8 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 		viewPosition += mouseDiff;
 	}
 	lastMousePos = currMousePos;
+
+	
 
 }
 
