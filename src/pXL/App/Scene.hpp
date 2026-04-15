@@ -18,27 +18,40 @@ namespace px
 	class Transition;
 	class Mapping;
 
-	struct ApiDraw
+	class Scene;
+
+	struct EngineApi
 	{
-		sf::RenderTarget& window;
+		SceneCommands& comms;
+		const InputRaw& input;
 		const Assets& assets;
+		Transition& transition;
+		const Mapping& mapping;
 	};
 
-	struct ApiUpdate
+	struct SceneCtx
+	{
+		SceneConfig& properties;
+
+	private:
+
+		EngineApi api;
+
+		friend Scene;
+	};
+
+	struct UpdateCtx
 	{
 		const sf::Window& window;
 		const sf::Time dt;
 		Transition& transition;
 	};
 
-	struct ApiScene
+	struct DrawCtx
 	{
-		SceneCommands& comms;
-		const InputRaw& input;
+		sf::RenderTarget& window;
 		const Assets& assets;
-		SceneConfig& properties;
-		Transition& transition;
-		const Mapping& mapping;
+		float alpha{};
 	};
 
 	class SceneStack;
@@ -58,6 +71,7 @@ namespace px
 	protected:
 
 		ApiScene scene;
+		EngineApi api;
 
 	private:
 
