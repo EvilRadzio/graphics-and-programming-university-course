@@ -20,6 +20,7 @@ namespace Scenes
 		Context& ctx;
 		sf::Vector2i lastMousePos;
 		sf::Vector2i viewPosition{0,0};
+		std::unordered_map<std::string, Tile> LE_tiles;
 		int windowSize = 720;
 		int mapWidth = 25;
 		int mapHeight = 25;
@@ -27,15 +28,17 @@ namespace Scenes
 		int currentTile = 0;
 		int currentMap = 1;
 		std::vector<std::string> maps = {
-			"./resources/maps/1.txt",
-			"./resources/maps/2.txt",
-			"./resources/maps/3.txt",
-			"./resources/maps/4.txt",
-			"./resources/maps/5.txt",
+			"./resources/maps/1.json",
+			"./resources/maps/2.json",
+			"./resources/maps/3.json",
+			"./resources/maps/4.json",
+			"./resources/maps/5.json",
+			"./resources/maps/6.json",
+
 		};
 		std::vector<std::string> TileName;
 		std::vector<const char*> TileNameC;
-		std::string mapName = "./resources/maps/" + std::to_string(currentMap) + ".txt";
+		std::string mapName = "./resources/maps/" + std::to_string(currentMap) + ".json";
 
 	};
 }
