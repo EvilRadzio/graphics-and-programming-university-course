@@ -11,6 +11,7 @@
 #include "SceneStack.hpp"
 #include "InputRaw.hpp"
 #include "Transition.hpp"
+#include "Input.hpp"
 
 namespace px
 {
@@ -44,15 +45,18 @@ namespace px
 		Assets assets;
 		sf::RenderWindow window;
 		SceneStack scenes;
-		InputRaw input;
+		InputRaw deprecatedInput;
+		Input input;
+		Mapping mapping{ input };
 		Transition transition;
 
 		ApiScene apiScene{
 			scenes,
-			input,
+			deprecatedInput,
 			assets,
 			scenes,
-			transition
+			transition,
+			mapping
 		};
 
 	private:
@@ -85,10 +89,12 @@ namespace px
 
 			preEvent();
 
-			input.newTick();
+			deprecatedInput.newTick();
+			input.newFrame();
 
 			while (const auto event = window.pollEvent())
 			{
+				deprecatedInput.readEvent(*event);
 				input.readEvent(*event);
 
 				ImGui::SFML::ProcessEvent(window, *event);

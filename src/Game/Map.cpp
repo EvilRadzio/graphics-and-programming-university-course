@@ -21,4 +21,5 @@ Map loadMap(const std::filesystem::path& path)
 
 	//SPDLOG_INFO("Loaded the map from {}", path);
 	//SPDLOG_ERROR("Failed to load the map from {}", path);
+	return Map({ 10, 10 }, Tile{});
 }

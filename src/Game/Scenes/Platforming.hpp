@@ -34,13 +34,5 @@ namespace Scenes
 		Map m_map;
 
 		int32_t m_dir{ 1 };
-
-		enum class Action : uint8_t
-		{
-			Jump, Left, Right
-		};
-		static constexpr uint8_t k_actions = static_cast<uint8_t>(Action::Right) + 1;
-
-		px::InputMapping<Action, k_actions> m_input;
 	};
 }

@@ -9,3 +9,4 @@
 #include "Client.hpp"
 #include "Transition.hpp"
 #include "TextMenu.hpp"
+#include "Input.hpp"
