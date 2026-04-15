@@ -5,13 +5,8 @@
 Scenes::Platforming::Platforming(px::ApiScene& api, Context& ctx) :
 	Scene(api),
 	m_ctx(ctx),
-	m_map(sf::Vector2u(100, 10), m_ctx.tiles["empty"]),
-	m_input(api.input)
+	m_map(sf::Vector2u(100, 10), m_ctx.tiles["empty"])
 {
-	m_input.set(Action::Jump, sf::Keyboard::Scancode::Space);
-	m_input.set(Action::Left, sf::Keyboard::Scancode::A);
-	m_input.set(Action::Right, sf::Keyboard::Scancode::D);
-
 	for (uint32_t y = 0; y < m_map.size().y; ++y)
 	{
 		for (uint32_t x = 0; x < m_map.size().x; ++x)
@@ -39,7 +34,7 @@ Scenes::Platforming::Platforming(px::ApiScene& api, Context& ctx) :
 	m_registry.emplace<Controllable>(player);
 }
 
-void Scenes::Platforming::update(px::ApiUpdate& api)
+void Scenes::Platforming::fixedUpdate(px::ApiUpdate& api)
 {
 	if (scene.input.isPressed(sf::Keyboard::Scancode::Escape))
 	{
@@ -136,7 +131,7 @@ void Scenes::Platforming::playerControlSystem(px::ApiUpdate& api)
 	auto view = m_registry.view<Controllable, Transform>();
 
 	view.each([&](auto& controllable, auto& transform) {
-		if (m_input.isPressed(Action::Jump) && controllable.canJump)
+		if (scene.mapping.isPressed("Jump") && controllable.canJump)
 		{
 			transform.vel.y = -k_jumpVelocity;
 			controllable.canJump = false;
@@ -146,7 +141,7 @@ void Scenes::Platforming::playerControlSystem(px::ApiUpdate& api)
 			transform.vel.y = std::min(transform.vel.y + k_downAcceleration * api.dt.asSeconds(), k_maxDownAcceleration);
 		}
 
-		int32_t direction = 0 - m_input.isHeld(Action::Left) + m_input.isHeld(Action::Right);
+		int32_t direction = 0 - scene.mapping.isHeld("Left") + scene.mapping.isHeld("Right");
 
 		m_dir = direction != 0 ? direction : m_dir;
 

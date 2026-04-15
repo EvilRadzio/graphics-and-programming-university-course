@@ -15,6 +15,8 @@ public:
 
 	Game()
 	{
+		//window.setFramerateLimit(60);
+
 		recursiveLoad("resources/textures", [&](const auto& path, const auto& name) {
 			sf::Texture texture;
 			if (!texture.loadFromFile(path))
@@ -33,6 +35,10 @@ public:
 		scenes.registerScene("Platforming", [&]() { return std::make_unique<Scenes::Platforming>(apiScene, m_ctx); });
 		scenes.registerScene("Pause", [&]() {return std::make_unique<Scenes::Pause>(apiScene); });
 		scenes.push("MainMenu");
+
+		mapping.set("Jump", px::InputId::Space);
+		mapping.set("Left", px::InputId::A);
+		mapping.set("Right", px::InputId::D);
 
 		m_ctx.tiles["empty"] = Tile{Tile::Type::Air, "", "empty"};
 		m_ctx.tiles["solid_block"] = Tile{ Tile::Type::Solid, "solid_block", "solid_block"};
@@ -72,6 +78,14 @@ public:
 		assets.backgrounds.set("background", std::move(background));
 
 		assets.font = sf::Font("resources/Butterpop.otf");
+	}
+
+	void preEvent() override
+	{
+		if (frameInput.isPressed(px::InputId::F))
+		{
+			showFps = !showFps;
+		}
 	}
 
 private:

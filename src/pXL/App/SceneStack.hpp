@@ -83,6 +83,7 @@ namespace px
 
 		void flush();
 		void update(ApiUpdate& api);
+		void fixedUpdate(ApiUpdate& api);
 		void draw(ApiDraw& api) const;
 
 		std::unordered_map<std::string, SceneFactory> m_factories;
@@ -209,6 +210,13 @@ namespace px
 		assert(!m_scenes.empty() && "Can't run update() a scene if the scene stack is empty");
 
 		m_scenes.back().ptr->update(api);
+	}
+
+	inline void SceneStack::fixedUpdate(ApiUpdate& api)
+	{
+		assert(!m_scenes.empty() && "Can't run fixedUpdate() a scene if the scene stack is empty");
+
+		m_scenes.back().ptr->fixedUpdate(api);
 	}
 
 	inline void SceneStack::draw(ApiDraw& api) const

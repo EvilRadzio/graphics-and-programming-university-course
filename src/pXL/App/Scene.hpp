@@ -16,6 +16,7 @@ namespace px
 	class SceneCommands;
 	class SceneConfig;
 	class Transition;
+	class Mapping;
 
 	struct ApiDraw
 	{
@@ -37,6 +38,7 @@ namespace px
 		const Assets& assets;
 		SceneConfig& properties;
 		Transition& transition;
+		const Mapping& mapping;
 	};
 
 	class SceneStack;
