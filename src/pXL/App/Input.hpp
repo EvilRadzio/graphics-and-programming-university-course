@@ -11,6 +11,8 @@
 
 namespace px
 {
+	class Client;
+
 	static constexpr uint32_t k_scanCodeNoUnknownCount = sf::Keyboard::ScancodeCount - 1;
 	static constexpr uint32_t k_allButtonsCount = k_scanCodeNoUnknownCount + sf::Mouse::ButtonCount;
 
@@ -42,6 +44,8 @@ namespace px
 		MLeft, MRight, MMiddle, MExtra1, MExtra2
 	};
 
+	std::string stringifyInputId(InputId id);
+
 	class Input final
 	{
 	public:
@@ -53,15 +57,17 @@ namespace px
 		sf::Vector2i getMousePosition() const;
 		sf::Vector2i getMouseDelta() const;
 
-		void newFrame();
-		void readEvent(const sf::Event& e);
-
 	private:
+
+		void newUpdate();
+		void readEvent(const sf::Event& e);
 
 		std::bitset<k_allButtonsCount> m_pressed, m_released, m_held;
 		sf::Vector2i m_position{};
 		sf::Vector2i m_delta{};
 		bool m_inWindow{};
+
+		friend Client;
 	};
 
 	class Mapping final
@@ -78,17 +84,184 @@ namespace px
 
 	private:
 
+		void setUnderlyingInput(const Input& input);
 		void bindAssert(const std::string& action) const;
 
 		std::unordered_map<std::string, InputId> m_binds;
-		const Input& m_input;
+		const Input* m_input;
+
+		friend Client;
 	};
 
+#pragma region InputIdImplementation
+
+	inline std::string stringifyInputId(InputId id)
+	{
+		switch (id)
+		{
+			using enum InputId;
+		case A: return "A";
+		case B: return "B";
+		case C: return "C";
+		case D: return "D";
+		case E: return "E";
+		case F: return "F";
+		case G: return "G";
+		case H: return "H";
+		case I: return "I";
+		case J: return "J";
+		case K: return "K";
+		case L: return "L";
+		case M: return "M";
+		case N: return "N";
+		case O: return "O";
+		case P: return "P";
+		case Q: return "Q";
+		case R: return "R";
+		case S: return "S";
+		case T: return "T";
+		case U: return "U";
+		case V: return "V";
+		case W: return "W";
+		case X: return "X";
+		case Y: return "Y";
+		case Z: return "Z";
+		case Num1: return "Num1";
+		case Num2: return "Num2";
+		case Num3: return "Num3";
+		case Num4: return "Num4";
+		case Num5: return "Num5";
+		case Num6: return "Num6";
+		case Num7: return "Num7";
+		case Num8: return "Num8";
+		case Num9: return "Num9";
+		case Num0: return "Num0";
+		case Enter: return "Enter";
+		case Escape: return "Escape";
+		case Backspace: return "Backspace";
+		case Tab: return "Tab";
+		case Space: return "Space";
+		case Hyphen: return "Hyphen";
+		case Equal: return "Equal";
+		case LBracket: return "LBracket";
+		case RBracket: return "RBracket";
+		case Backslash: return "Backslash";
+		case Semicolon: return "Semicolon";
+		case Apostrophe: return "Apostrophe";
+		case Grave: return "Grave";
+		case Comma: return "Comma";
+		case Period: return "Period";
+		case Slash: return "Slash";
+		case F1: return "F1";
+		case F2: return "F2";
+		case F3: return "F3";
+		case F4: return "F4";
+		case F5: return "F5";
+		case F6: return "F6";
+		case F7: return "F7";
+		case F8: return "F8";
+		case F9: return "F9";
+		case F10: return "F10";
+		case F11: return "F11";
+		case F12: return "F12";
+		case F13: return "F13";
+		case F14: return "F14";
+		case F15: return "F15";
+		case F16: return "F16";
+		case F17: return "F17";
+		case F18: return "F18";
+		case F19: return "F19";
+		case F20: return "F20";
+		case F21: return "F21";
+		case F22: return "F22";
+		case F23: return "F23";
+		case F24: return "F24";
+		case CapsLock: return "CapsLock";
+		case PrintScreen: return "PrintScreen";
+		case ScrollLock: return "ScrollLock";
+		case Pause: return "Pause";
+		case Insert: return "Insert";
+		case Home: return "Home";
+		case PageUp: return "PageUp";
+		case Delete: return "Delete";
+		case End: return "End";
+		case PageDown: return "PageDown";
+		case Right: return "Right";
+		case Left: return "Left";
+		case Down: return "Down";
+		case Up: return "Up";
+		case NumLock: return "NumLock";
+		case NumpadDivide: return "NumpadDivide";
+		case NumpadMultiply: return "NumpadMultiply";
+		case NumpadMinus: return "NumpadMinus";
+		case NumpadPlus: return "NumpadPlus";
+		case NumpadEqual: return "NumpadEqual";
+		case NumpadEnter: return "NumpadEnter";
+		case NumpadDecimal: return "NumpadDecimal";
+		case Numpad1: return "Numpad1";
+		case Numpad2: return "Numpad2";
+		case Numpad3: return "Numpad3";
+		case Numpad4: return "Numpad4";
+		case Numpad5: return "Numpad5";
+		case Numpad6: return "Numpad6";
+		case Numpad7: return "Numpad7";
+		case Numpad8: return "Numpad8";
+		case Numpad9: return "Numpad9";
+		case Numpad0: return "Numpad0";
+		case NonUsBackslash: return "NonUsBackslash";
+		case Application: return "Application";
+		case Execute: return "Execute";
+		case ModeChange: return "ModeChange";
+		case Help: return "Help";
+		case Menu: return "Menu";
+		case Select: return "Select";
+		case Redo: return "Redo";
+		case Undo: return "Undo";
+		case Cut: return "Cut";
+		case Copy: return "Copy";
+		case Paste: return "Paste";
+		case VolumeMute: return "VolumeMute";
+		case VolumeUp: return "VolumeUp";
+		case VolumeDown: return "VolumeDown";
+		case MediaPlayPause: return "MediaPlayPause";
+		case MediaStop: return "MediaStop";
+		case MediaNextTrack: return "MediaNextTrack";
+		case MediaPreviousTrack: return "MediaPreviousTrack";
+		case LControl: return "LControl";
+		case LShift: return "LShift";
+		case LAlt: return "LAlt";
+		case LSystem: return "LSystem";
+		case RControl: return "RControl";
+		case RShift: return "RShift";
+		case RAlt: return "RAlt";
+		case System: return "System";
+		case Back: return "Back";
+		case Forward: return "Forward";
+		case Refresh: return "Refresh";
+		case Stop: return "Stop";
+		case Search: return "Search";
+		case Favorites: return "Favorites";
+		case HomePage: return "HomePage";
+		case LaunchApplication1: return "LaunchApplication1";
+		case LaunchApplication2: return "LaunchApplication2";
+		case LaunchMail: return "LaunchMail";
+		case LaunchMediaSelect: return "LaunchMediaSelect";
+		case MLeft: return "MLeft";
+		case MRight: return "MRight";
+		case MMiddle: return "MMiddle";
+		case MExtra1: return "MExtra1";
+		case MExtra2: return "MExtra2";
+		}
+
+		return "Undefined";
+	}
+
+#pragma endregion InputIdImplementation
 #pragma region InputImplementation
 
 	inline bool Input::isPressed(InputId input) const
 	{
-		return  m_pressed[static_cast<size_t>(input)];
+		return m_pressed[static_cast<size_t>(input)];
 	}
 
 	inline bool Input::isReleased(InputId input) const
@@ -127,10 +300,11 @@ namespace px
 		return m_delta;
 	}
 
-	inline void Input::newFrame()
+	inline void Input::newUpdate()
 	{
 		m_pressed.reset();
 		m_released.reset();
+		m_delta = {};
 	}
 
 	inline void Input::readEvent(const sf::Event& e)
@@ -138,7 +312,7 @@ namespace px
 		if (e.is<sf::Event::FocusLost>())
 		{
 			m_pressed.reset();
-			m_released = m_held;
+			m_released.reset();
 			m_held.reset();
 		}
 		else if (e.is<sf::Event::KeyPressed>())
@@ -194,33 +368,38 @@ namespace px
 #pragma region MappingImplementation
 
 	inline Mapping::Mapping(const Input& input) :
-		m_input(input)
+		m_input(&input)
 	{}
 
 	inline bool Mapping::isPressed(const std::string& action) const
 	{
 		bindAssert(action);
 
-		return m_input.isPressed(m_binds.at(action));
+		return m_input->isPressed(m_binds.at(action));
 	}
 
 	inline bool Mapping::isReleased(const std::string& action) const
 	{
 		bindAssert(action);
 
-		return m_input.isReleased(m_binds.at(action));
+		return m_input->isReleased(m_binds.at(action));
 	}
 
 	inline bool Mapping::isHeld(const std::string& action) const
 	{
 		bindAssert(action);
 
-		return m_input.isHeld(m_binds.at(action));
+		return m_input->isHeld(m_binds.at(action));
 	}
 
 	inline void Mapping::set(const std::string& action, InputId input)
 	{
 		m_binds.insert_or_assign(action, input);
+	}
+
+	inline void Mapping::setUnderlyingInput(const Input& input)
+	{
+		m_input = &input;
 	}
 
 	inline void Mapping::bindAssert(const std::string& action) const

@@ -46,8 +46,9 @@ namespace px
 		sf::RenderWindow window;
 		SceneStack scenes;
 		InputRaw deprecatedInput;
-		Input input;
-		Mapping mapping{ input };
+		Input frameInput;
+		Input tickInput;
+		Mapping mapping{ frameInput };
 		Transition transition;
 
 		ApiScene apiScene{
@@ -59,6 +60,8 @@ namespace px
 			mapping
 		};
 
+		bool showFps{};
+
 	private:
 
 		static constexpr uint32_t k_tps{ 60 };
@@ -69,7 +72,6 @@ namespace px
 		window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game", sf::Style::Close)
 	{
 		window.setKeyRepeatEnabled(false);
-		window.setFramerateLimit(60);
 		ImGui::SFML::Init(window);
 		ImGui::GetIO().FontGlobalScale = 2.0f;
 	}
@@ -82,6 +84,7 @@ namespace px
 	inline void Client::run()
 	{
 		sf::Clock clock;
+		sf::Time acumulator;
 
 		while (window.isOpen())
 		{
@@ -90,12 +93,13 @@ namespace px
 			preEvent();
 
 			deprecatedInput.newTick();
-			input.newFrame();
+			frameInput.newUpdate();
 
 			while (const auto event = window.pollEvent())
 			{
 				deprecatedInput.readEvent(*event);
-				input.readEvent(*event);
+				frameInput.readEvent(*event);
+				tickInput.readEvent(*event);
 
 				ImGui::SFML::ProcessEvent(window, *event);
 
@@ -110,14 +114,32 @@ namespace px
 			postEventPreUpdate();
 
 			sf::Time realDt = clock.restart();
+			acumulator += realDt;
+
+			ApiUpdate fixedUpdateApi{
+				window,
+				k_fixedDt,
+				transition
+			};
+
+			mapping.setUnderlyingInput(tickInput);
+
+			while (acumulator >= k_fixedDt)
+			{
+				scenes.fixedUpdate(fixedUpdateApi);
+				tickInput.newUpdate();
+				acumulator -= k_fixedDt;
+			}
 
 			ImGui::SFML::Update(window, realDt);
+
+			mapping.setUnderlyingInput(frameInput);
 
 			transition.update(k_fixedDt.asSeconds());
 
 			ApiUpdate updateApi{
 				window,
-				k_fixedDt,
+				realDt,
 				transition
 			};
 
@@ -138,9 +160,15 @@ namespace px
 
 			window.draw(transition);
 
-			window.display();
+			if (showFps)
+			{
+				sf::Text fpsDisplay(assets.font, std::to_string(1.f / realDt.asSeconds()));
+				window.draw(fpsDisplay);
+			}
 
 			postDraw();
+
+			window.display();
 		}
 	}
 

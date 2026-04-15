@@ -15,6 +15,8 @@ public:
 
 	Game()
 	{
+		//window.setFramerateLimit(60);
+
 		recursiveLoad("resources/textures", [&](const auto& path, const auto& name) {
 			sf::Texture texture;
 			if (!texture.loadFromFile(path))
@@ -76,6 +78,14 @@ public:
 		assets.backgrounds.set("background", std::move(background));
 
 		assets.font = sf::Font("resources/Butterpop.otf");
+	}
+
+	void preEvent() override
+	{
+		if (frameInput.isPressed(px::InputId::F))
+		{
+			showFps = !showFps;
+		}
 	}
 
 private:
