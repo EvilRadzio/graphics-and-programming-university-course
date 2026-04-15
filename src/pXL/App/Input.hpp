@@ -318,7 +318,15 @@ namespace px
 		if (e.is<sf::Event::FocusLost>())
 		{
 			m_pressed.reset();
-			m_released.reset();
+			
+			for (size_t i = 0; i < k_allButtonsCount; ++i)
+			{
+				if (m_held[i])
+				{
+					m_released.set(i, true);
+				}
+			}
+
 			m_held.reset();
 		}
 		else if (e.is<sf::Event::KeyPressed>())

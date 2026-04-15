@@ -9,7 +9,6 @@
 #include <imgui.h>
 
 #include "SceneStack.hpp"
-#include "InputRaw.hpp"
 #include "Transition.hpp"
 #include "Input.hpp"
 
@@ -45,7 +44,6 @@ namespace px
 		Assets assets;
 		sf::RenderWindow window;
 		SceneStack scenes;
-		InputRaw deprecatedInput;
 		Input frameInput;
 		Input tickInput;
 		Mapping mapping{ frameInput };
@@ -95,12 +93,10 @@ namespace px
 
 			preEvent();
 
-			deprecatedInput.newTick();
 			frameInput.newUpdate();
 
 			while (const auto event = window.pollEvent())
 			{
-				deprecatedInput.readEvent(*event);
 				frameInput.readEvent(*event);
 				tickInput.readEvent(*event);
 
