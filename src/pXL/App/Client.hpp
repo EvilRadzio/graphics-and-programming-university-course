@@ -135,7 +135,7 @@ namespace px
 
 			mapping.setUnderlyingInput(frameInput);
 
-			transition.update(k_fixedDt.asSeconds());
+			transition.update(realDt.asSeconds());
 
 			ApiUpdate updateApi{
 				window,

@@ -17,6 +17,7 @@ namespace Scenes
 
 		Platforming(px::ApiScene& api, Context& ctx);
 
+		void update(px::ApiUpdate& api) override;
 		void fixedUpdate(px::ApiUpdate& api) override;
 		void draw(px::ApiDraw& api) const override;
 

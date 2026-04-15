@@ -34,13 +34,16 @@ Scenes::Platforming::Platforming(px::ApiScene& api, Context& ctx) :
 	m_registry.emplace<Controllable>(player);
 }
 
-void Scenes::Platforming::fixedUpdate(px::ApiUpdate& api)
+void Scenes::Platforming::update(px::ApiUpdate& api)
 {
 	if (scene.input.isPressed(sf::Keyboard::Scancode::Escape))
 	{
 		scene.comms.push("Pause", {});
 	}
+}
 
+void Scenes::Platforming::fixedUpdate(px::ApiUpdate& api)
+{
 	m_elapsed += api.dt;
 
 	playerControlSystem(api);

@@ -30,7 +30,7 @@ public:
 			SPDLOG_INFO("Texture loaded: {}", name);
 		});
 
-		scenes.registerScene("MainMenu", [&]() { return std::make_unique<Scenes::MainMenu>(apiScene); });
+		scenes.registerScene("MainMenu", [&]() { return std::make_unique<Scenes::MainMenu>(apiScene, window); });
 		scenes.registerScene("LevelEditor", [&]() { return std::make_unique<Scenes::LevelEditor>(apiScene, m_ctx); });
 		scenes.registerScene("Platforming", [&]() { return std::make_unique<Scenes::Platforming>(apiScene, m_ctx); });
 		scenes.registerScene("Pause", [&]() {return std::make_unique<Scenes::Pause>(apiScene); });

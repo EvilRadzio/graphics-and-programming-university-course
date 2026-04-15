@@ -8,11 +8,14 @@ namespace Scenes
 	{
 	public:
 
-		MainMenu(px::ApiScene& api) : Scene(api), m_menu({360, 360})
+		MainMenu(px::ApiScene& api, sf::Window& window) :
+			Scene(api),
+			m_menu({360, 360}),
+			m_window(window)
 		{
 			m_menu.addButton("Play", [&]() { api.transition.start([&]() { scene.comms.push("Platforming"); }); });
 			m_menu.addButton("Level Editor", [&]() { api.transition.start([&]() { scene.comms.push("LevelEditor"); }); });
-			m_menu.addButton("Exit", [&]() {});
+			m_menu.addButton("Exit", [&]() { window.close(); });
 		}
 
 		void update(px::ApiUpdate& api) override
@@ -46,5 +49,6 @@ namespace Scenes
 	private:
 
 		px::TextMenu m_menu;
+		sf::Window& m_window;
 	};
 }
