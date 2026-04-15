@@ -39,6 +39,10 @@ public:
 		mapping.set("Jump", px::InputId::Space);
 		mapping.set("Left", px::InputId::A);
 		mapping.set("Right", px::InputId::D);
+		mapping.set("Up", px::InputId::W);
+		mapping.set("Down", px::InputId::S);
+		mapping.set("Confirm", px::InputId::Space);
+		mapping.set("Pause", px::InputId::Escape);
 
 		m_ctx.tiles["empty"] = Tile{Tile::Type::Air, "", "empty"};
 		m_ctx.tiles["solid_block"] = Tile{ Tile::Type::Solid, "solid_block", "solid_block"};

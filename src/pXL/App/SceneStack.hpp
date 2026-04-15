@@ -82,9 +82,9 @@ namespace px
 		void popScene();
 
 		void flush();
-		void update(ApiUpdate& api);
-		void fixedUpdate(ApiUpdate& api);
-		void draw(ApiDraw& api) const;
+		void update(UpdateCtx& api);
+		void fixedUpdate(UpdateCtx& api);
+		void draw(DrawCtx& api) const;
 
 		std::unordered_map<std::string, SceneFactory> m_factories;
 		std::vector<SceneInstance> m_scenes;
@@ -205,21 +205,21 @@ namespace px
 		m_scenes.back().ptr->onEnter(std::move(request.payload));
 	}
 
-	inline void SceneStack::update(ApiUpdate& api)
+	inline void SceneStack::update(UpdateCtx& api)
 	{
 		assert(!m_scenes.empty() && "Can't run update() a scene if the scene stack is empty");
 
 		m_scenes.back().ptr->update(api);
 	}
 
-	inline void SceneStack::fixedUpdate(ApiUpdate& api)
+	inline void SceneStack::fixedUpdate(UpdateCtx& api)
 	{
 		assert(!m_scenes.empty() && "Can't run fixedUpdate() a scene if the scene stack is empty");
 
 		m_scenes.back().ptr->fixedUpdate(api);
 	}
 
-	inline void SceneStack::draw(ApiDraw& api) const
+	inline void SceneStack::draw(DrawCtx& api) const
 	{
 		assert(!m_scenes.empty() && "Can't run draw() a scene if a scene stack is empty");
 

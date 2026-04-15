@@ -3,12 +3,12 @@
 #include <fstream>
 #include <filesystem>
 
-Scenes::LevelEditor::LevelEditor(px::ApiScene api, Context& ctx) :
-	Scene(api),
-	ctx(ctx),
-	LE_map(sf::Vector2u(mapWidth, mapHeight), ctx.tiles["empty"]) 
+Scenes::LevelEditor::LevelEditor(px::SceneInitCtx ctx, Context& gctx) :
+	Scene(ctx),
+	m_ctx(gctx),
+	LE_map(sf::Vector2u(mapWidth, mapHeight), m_ctx.tiles["empty"]) 
 {
-	for (const auto& [tilename, _ ] : ctx.tiles) {
+	for (const auto& [tilename, _ ] : gctx.tiles) {
 		TileName.push_back(tilename);
 	}
 	//for (int i = 0; i < TileName.size(); i++) { TileNameC[i] = TileName.at(i); }
@@ -21,28 +21,26 @@ Scenes::LevelEditor::LevelEditor(px::ApiScene api, Context& ctx) :
 		{
 			std::string loadedId;
 			loadedMap >> loadedId;
-			if (ctx.tiles.contains(loadedId)) {
-				LE_map.at({ x,y }) = ctx.tiles.at(loadedId);
+			if (m_ctx.tiles.contains(loadedId)) {
+				LE_map.at({ x,y }) = m_ctx.tiles.at(loadedId);
 			}
 			else {
 				std::cout << "Unknown Tile" << std::endl;
-				LE_map.at({ x,y }) = ctx.tiles.at("empty");
+				LE_map.at({ x,y }) = m_ctx.tiles.at("empty");
 			}
 		}
 	}
-	lastMousePos = scene.input.getMousePosition();
+	lastMousePos = api.mapping.getMousePosition();
 }
 
-void Scenes::LevelEditor::update(px::ApiUpdate& api)
+void Scenes::LevelEditor::update(px::UpdateCtx& ctx)
 {
 	if (ImGui::Begin("Editor Menu"))
 	{
 		if (ImGui::Button("Back"))
 		{
-			scene.comms.pop({});
+			api.comms.pop({});
 		}
-		
-		
 
 		static int prevWidth = mapWidth;
 		static int prevHeight = mapHeight;
@@ -124,12 +122,12 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 					{
 						std::string loadedId;
 						LoadedMap >> loadedId;
-						if (ctx.tiles.contains(loadedId)) {
-							LE_map.at({ x,y }) = ctx.tiles.at(loadedId);
+						if (m_ctx.tiles.contains(loadedId)) {
+							LE_map.at({ x,y }) = m_ctx.tiles.at(loadedId);
 						}
 						else {
 							std::cout << "Unknown Tile" << std::endl;
-							LE_map.at({ x,y }) = ctx.tiles.at("empty");
+							LE_map.at({ x,y }) = m_ctx.tiles.at("empty");
 						}
 					}
 				}
@@ -144,23 +142,23 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 		sf::Vector2i(0,0), sf::Vector2i((windowSize / mapHeight),(windowSize / mapHeight))
 	};
 
-	sf::Vector2i mousePosition = scene.input.getMousePosition();
+	sf::Vector2i mousePosition = api.mapping.getMousePosition();
 	mousePosition += viewPosition;
 
 	for (unsigned int y = 0; y < mapHeight; y++) {
 		for (unsigned int x = 0; x < mapWidth; x++) {
 			rect.position = sf::Vector2i(x * (windowSize / mapHeight), y * (windowSize / mapHeight));
-			if (scene.input.isPressed(sf::Mouse::Button::Left) && rect.contains(mousePosition)) {
+			if (api.mapping.isPressed(px::InputId::MLeft) && rect.contains(mousePosition)) {
 				sf::Vector2u MP = sf::Vector2u(mousePosition / (windowSize / mapHeight));
-				LE_map.at(MP) = ctx.tiles.at(TileName[currentTile]);
+				LE_map.at(MP) = m_ctx.tiles.at(TileName[currentTile]);
 				//LE_map.set(MP, sceneApi.tiles.handle("solid_block")); //change it to currentTile later.
 
 			}
 		}
 	}
 
-	sf::Vector2i currMousePos = scene.input.getMousePosition();
-	if (scene.input.isHeld(sf::Mouse::Button::Right)) {
+	sf::Vector2i currMousePos = api.mapping.getMousePosition();
+	if (api.mapping.isHeld(px::InputId::MRight)) {
 		sf::Vector2i mouseDiff = lastMousePos - currMousePos;
 		viewPosition += mouseDiff;
 	}
@@ -168,11 +166,11 @@ void Scenes::LevelEditor::update(px::ApiUpdate& api)
 
 }
 
-void Scenes::LevelEditor::draw(px::ApiDraw& api) const
+void Scenes::LevelEditor::draw(px::DrawCtx& ctx) const
 {	
-	sf::View view(sf::FloatRect{ (sf::Vector2f)viewPosition, (sf::Vector2f)api.window.getSize() });
+	sf::View view(sf::FloatRect{ (sf::Vector2f)viewPosition, (sf::Vector2f)ctx.window.getSize() });
 	uint32_t tileSide = windowSize / LE_map.size().x;
-	api.window.setView(view);
+	ctx.window.setView(view);
 	for (size_t y = 0; y < LE_map.size().y; ++y) for (size_t x = 0; x < LE_map.size().x; ++x)
 	{
 		sf::Vector2u position(x, y);
@@ -191,7 +189,7 @@ void Scenes::LevelEditor::draw(px::ApiDraw& api) const
 				static_cast<float>(tileSide) / bounds.size.y
 			});
 
-			api.window.draw(sprite);
+			ctx.window.draw(sprite);
 		}
 	}
 }
@@ -199,7 +197,7 @@ void Scenes::LevelEditor::draw(px::ApiDraw& api) const
 void Scenes::LevelEditor::resizeMap() {
 	auto oldMap = LE_map;
 
-	LE_map = px::Grid<Tile>(sf::Vector2u(mapWidth, mapHeight), ctx.tiles.at("empty"));
+	LE_map = px::Grid<Tile>(sf::Vector2u(mapWidth, mapHeight), m_ctx.tiles.at("empty"));
 
 	for (unsigned int y = 0; y < std::min(oldMap.size().y, LE_map.size().y); y++)
 	{

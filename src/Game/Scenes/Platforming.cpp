@@ -2,9 +2,9 @@
 
 #include "Platforming.hpp"
 
-Scenes::Platforming::Platforming(px::ApiScene& api, Context& ctx) :
-	Scene(api),
-	m_ctx(ctx),
+Scenes::Platforming::Platforming(px::SceneInitCtx& ctx, Context& gctx) :
+	Scene(ctx),
+	m_ctx(gctx),
 	m_map(sf::Vector2u(100, 10), m_ctx.tiles["empty"])
 {
 	for (uint32_t y = 0; y < m_map.size().y; ++y)
@@ -34,26 +34,26 @@ Scenes::Platforming::Platforming(px::ApiScene& api, Context& ctx) :
 	m_registry.emplace<Controllable>(player);
 }
 
-void Scenes::Platforming::update(px::ApiUpdate& api)
+void Scenes::Platforming::update(px::UpdateCtx& ctx)
 {
-	if (scene.input.isPressed(sf::Keyboard::Scancode::Escape))
+	if (api.mapping.isPressed("Pause"))
 	{
-		scene.comms.push("Pause", {});
+		api.comms.push("Pause");
 	}
 }
 
-void Scenes::Platforming::fixedUpdate(px::ApiUpdate& api)
+void Scenes::Platforming::fixedUpdate(px::UpdateCtx& ctx)
 {
-	m_elapsed += api.dt;
+	m_elapsed += ctx.dt;
 
-	playerControlSystem(api);
+	playerControlSystem(ctx);
 
-	movementAndColisionSystem(api);
+	movementAndColisionSystem(ctx);
 }
 
-void Scenes::Platforming::draw(px::ApiDraw& api) const
+void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 {
-	api.window.clear(sf::Color::Blue);
+	ctx.window.clear(sf::Color::Blue);
 
 	sf::Vector2u size = m_map.size();
 	uint32_t tileSide = 720 / size.y;
@@ -61,14 +61,14 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 	auto view = m_registry.view<const Controllable, const Transform>();
 	
 	view.each([&](const auto& _, const auto& transform) {
-		api.window.draw(px::Background(scene.assets.backgrounds.get("background"), transform.pos.x * tileSide));
+		ctx.window.draw(px::Background(api.assets.backgrounds.get("background"), transform.pos.x * tileSide));
 
 		sf::View view(
-			transform.pos * static_cast<float>(api.window.getSize().x / 10.0f),
-			static_cast<sf::Vector2f>(api.window.getSize())
+			transform.pos * static_cast<float>(ctx.window.getSize().x / 10.0f),
+			static_cast<sf::Vector2f>(ctx.window.getSize())
 		);
 
-		api.window.setView(view);
+		ctx.window.setView(view);
 	});
 
 	for (size_t y = 0; y < size.y; ++y) for (size_t x = 0; x < size.x; ++x)
@@ -90,7 +90,7 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 				static_cast<float>(tileSide) / bounds.size.y
 			});
 
-			api.window.draw(sprite);
+			ctx.window.draw(sprite);
 		}
 	}
 
@@ -104,7 +104,7 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 
 			if (m_dir < 0) sprite.setMirrored(true);
 
-			api.window.draw(sprite);
+			ctx.window.draw(sprite);
 		}
 		else
 		{
@@ -115,14 +115,14 @@ void Scenes::Platforming::draw(px::ApiDraw& api) const
 
 			if (m_dir < 0) sprite.setMirrored(true);
 
-			api.window.draw(sprite);
+			ctx.window.draw(sprite);
 		}
 	});
 
-	api.window.setView(api.window.getDefaultView());
+	ctx.window.setView(ctx.window.getDefaultView());
 }
 
-void Scenes::Platforming::playerControlSystem(px::ApiUpdate& api)
+void Scenes::Platforming::playerControlSystem(px::UpdateCtx& ctx)
 {
 	constexpr float k_acceleration = 25.0f;
 	constexpr float k_deceleration = 25.0f;
@@ -134,25 +134,25 @@ void Scenes::Platforming::playerControlSystem(px::ApiUpdate& api)
 	auto view = m_registry.view<Controllable, Transform>();
 
 	view.each([&](auto& controllable, auto& transform) {
-		if (scene.mapping.isPressed("Jump") && controllable.canJump)
+		if (api.mapping.isPressed("Jump") && controllable.canJump)
 		{
 			transform.vel.y = -k_jumpVelocity;
 			controllable.canJump = false;
 		}
 		else
 		{
-			transform.vel.y = std::min(transform.vel.y + k_downAcceleration * api.dt.asSeconds(), k_maxDownAcceleration);
+			transform.vel.y = std::min(transform.vel.y + k_downAcceleration * ctx.dt.asSeconds(), k_maxDownAcceleration);
 		}
 
-		int32_t direction = 0 - scene.mapping.isHeld("Left") + scene.mapping.isHeld("Right");
+		int32_t direction = 0 - api.mapping.isHeld("Left") + api.mapping.isHeld("Right");
 
 		m_dir = direction != 0 ? direction : m_dir;
 
-		transform.vel.x += (direction * k_acceleration * api.dt.asSeconds());
+		transform.vel.x += (direction * k_acceleration * ctx.dt.asSeconds());
 
 		if (!direction)
 		{
-			float newVelocity = std::abs(transform.vel.x) - k_deceleration * api.dt.asSeconds();
+			float newVelocity = std::abs(transform.vel.x) - k_deceleration * ctx.dt.asSeconds();
 
 			if (newVelocity < 0.0f)
 			{
@@ -171,7 +171,7 @@ void Scenes::Platforming::playerControlSystem(px::ApiUpdate& api)
 	});
 }
 
-void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
+void Scenes::Platforming::movementAndColisionSystem(px::UpdateCtx& ctx)
 {
 	// The grounded check is stupid but what can you do? will fix it later
 
@@ -186,7 +186,7 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 		if (transform.vel.x < 0.0f)
 		{
 			float currentX = rect.position.x + transform.pos.x;
-			float possibleX = currentX + transform.vel.x * api.dt.asSeconds();
+			float possibleX = currentX + transform.vel.x * ctx.dt.asSeconds();
 
 			bool colided = false;
 			while (currentX - 1e-3f > possibleX && !colided)
@@ -211,7 +211,7 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 		else if (transform.vel.x > 0.0f)
 		{
 			float currentX = rect.position.x + rect.size.x + transform.pos.x;
-			float possibleX = currentX + transform.vel.x * api.dt.asSeconds();
+			float possibleX = currentX + transform.vel.x * ctx.dt.asSeconds();
 
 			bool colided = false;
 			while (currentX + 1e-3f < possibleX && !colided)
@@ -242,7 +242,7 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 		if (transform.vel.y < 0.0f)
 		{
 			float currentY = rect.position.y + transform.pos.y;
-			float possibleY = currentY + transform.vel.y * api.dt.asSeconds();
+			float possibleY = currentY + transform.vel.y * ctx.dt.asSeconds();
 
 			bool colided = false;
 			while (currentY - 1e-3f > possibleY && !colided)
@@ -271,7 +271,7 @@ void Scenes::Platforming::movementAndColisionSystem(px::ApiUpdate& api)
 		else if (transform.vel.y > 0.0f)
 		{
 			float currentY = rect.position.y + rect.size.y + transform.pos.y;
-			float possibleY = currentY + transform.vel.y * api.dt.asSeconds();
+			float possibleY = currentY + transform.vel.y * ctx.dt.asSeconds();
 
 			bool colided = false;
 			while (currentY + 1e-3f < possibleY && !colided)

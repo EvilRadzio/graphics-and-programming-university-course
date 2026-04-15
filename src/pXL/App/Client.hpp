@@ -51,13 +51,16 @@ namespace px
 		Mapping mapping{ frameInput };
 		Transition transition;
 
-		ApiScene apiScene{
+		EngineApi engApi{
 			scenes,
-			deprecatedInput,
 			assets,
+			mapping
+		};
+
+		SceneInitCtx apiScene{
 			scenes,
 			transition,
-			mapping
+			engApi
 		};
 
 		bool showFps{};
@@ -116,7 +119,7 @@ namespace px
 			sf::Time realDt = clock.restart();
 			acumulator += realDt;
 
-			ApiUpdate fixedUpdateApi{
+			UpdateCtx fixedUpdateApi{
 				window,
 				k_fixedDt,
 				transition
@@ -137,7 +140,7 @@ namespace px
 
 			transition.update(realDt.asSeconds());
 
-			ApiUpdate updateApi{
+			UpdateCtx updateApi{
 				window,
 				realDt,
 				transition
@@ -149,7 +152,7 @@ namespace px
 
 			window.clear(sf::Color::Black);
 
-			ApiDraw drawApi{
+			DrawCtx drawApi{
 				window,
 				assets
 			};

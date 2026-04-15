@@ -15,16 +15,16 @@ namespace Scenes
 	{
 	public:
 
-		Platforming(px::ApiScene& api, Context& ctx);
+		Platforming(px::SceneInitCtx& ctx, Context& gctx);
 
-		void update(px::ApiUpdate& api) override;
-		void fixedUpdate(px::ApiUpdate& api) override;
-		void draw(px::ApiDraw& api) const override;
+		void update(px::UpdateCtx& ctx) override;
+		void fixedUpdate(px::UpdateCtx& ctx) override;
+		void draw(px::DrawCtx& ctx) const override;
 
 	private:
 
-		void playerControlSystem(px::ApiUpdate& api);
-		void movementAndColisionSystem(px::ApiUpdate& api);
+		void playerControlSystem(px::UpdateCtx& api);
+		void movementAndColisionSystem(px::UpdateCtx& api);
 
 		Context& m_ctx;
 
