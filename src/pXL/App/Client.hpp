@@ -115,6 +115,8 @@ namespace px
 			sf::Time realDt = clock.restart();
 			acumulator += realDt;
 
+			acumulator = std::min(acumulator, k_fixedDt * 4.001f);
+
 			UpdateCtx fixedUpdateApi{
 				window,
 				k_fixedDt,
@@ -146,12 +148,15 @@ namespace px
 
 			postUpdatePreDraw();
 
-			window.clear(sf::Color::Black);
+			float alpha = (acumulator / k_fixedDt).asSeconds();
 
 			DrawCtx drawApi{
 				window,
-				assets
+				assets,
+				alpha
 			};
+
+			window.clear(sf::Color::Black);
 
 			scenes.draw(drawApi);
 
