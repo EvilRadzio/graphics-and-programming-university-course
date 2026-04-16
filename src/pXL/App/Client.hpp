@@ -148,7 +148,7 @@ namespace px
 
 			postUpdatePreDraw();
 
-			float alpha = (acumulator / k_fixedDt).asSeconds();
+			float alpha = acumulator / k_fixedDt;
 
 			DrawCtx drawApi{
 				window,
