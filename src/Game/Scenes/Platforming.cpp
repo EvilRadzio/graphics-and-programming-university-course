@@ -61,7 +61,12 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 	uint32_t tileSide = 720 / size.y;
 	
 	{
+		sf::Vector2f windowSize = static_cast<sf::Vector2f>(ctx.window.getSize());
+		sf::Vector2f halfScreenTiles = windowSize / static_cast<float>(tileSide) / 2.0f;
+
 		sf::Vector2f position = px::lerp(m_oldCameraPosition, m_cameraPosition, ctx.alpha);
+		position.x = std::clamp(position.x, halfScreenTiles.x, static_cast<float>(m_map.size().x) - halfScreenTiles.x);
+		position.y = std::clamp(position.y, halfScreenTiles.x, static_cast<float>(m_map.size().y) - halfScreenTiles.y);
 
 		ctx.window.draw(px::Background(api.assets.backgrounds.get("background"), position.x * tileSide));
 
@@ -136,8 +141,8 @@ void Scenes::Platforming::playerControlSystem(px::UpdateCtx& ctx)
 	constexpr float k_downAcceleration = 30.0f;
 	constexpr float k_maxDownAcceleration = 20.0f;
 	constexpr float k_fallMultiplayer = 1.5f;
-
 	constexpr sf::Time k_bufferedJumpLimit = sf::milliseconds(150);
+	constexpr sf::Time k_cayoteTime = sf::milliseconds(150);
 
 	if (api.mapping.isPressed("Jump"))
 	{
@@ -148,10 +153,12 @@ void Scenes::Platforming::playerControlSystem(px::UpdateCtx& ctx)
 		m_jumpBuffer.value() += ctx.dt;
 	}
 
+	m_floor += ctx.dt;
+
 	auto view = m_registry.view<Controllable, Transform>();
 
 	view.each([&](auto& controllable, auto& transform) {
-		if (m_jumpBuffer && m_jumpBuffer.value() <= k_bufferedJumpLimit && controllable.canJump)
+		if (m_jumpBuffer && m_jumpBuffer.value() <= k_bufferedJumpLimit && controllable.canJump && m_floor <= k_cayoteTime)
 		{
 			m_jumpBuffer = {};
 			transform.vel.y = -k_jumpVelocity;
@@ -261,8 +268,6 @@ void Scenes::Platforming::movementAndColisionSystem(px::UpdateCtx& ctx)
 		int32_t minX = rect.position.x + transform.pos.x;
 		int32_t maxX = rect.position.x + rect.size.x + transform.pos.x;
 
-		controllable.canJump = false;
-
 		if (transform.vel.y < 0.0f)
 		{
 			float currentY = rect.position.y + transform.pos.y;
@@ -316,6 +321,7 @@ void Scenes::Platforming::movementAndColisionSystem(px::UpdateCtx& ctx)
 				else
 				{
 					transform.vel.y = 0.0f;
+					m_floor = sf::Time::Zero;
 					controllable.canJump = true;
 				}
 			}

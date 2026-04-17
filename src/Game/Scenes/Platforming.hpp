@@ -37,6 +37,7 @@ namespace Scenes
 		sf::Vector2f m_cameraPosition, m_oldCameraPosition;
 
 		std::optional<sf::Time> m_jumpBuffer;
+		sf::Time m_floor;
 
 		int32_t m_dir{ 1 };
 	};

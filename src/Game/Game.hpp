@@ -47,7 +47,7 @@ public:
 		m_ctx.tiles["empty"] = Tile{Tile::Type::Air, "", "empty"};
 		m_ctx.tiles["solid_block"] = Tile{ Tile::Type::Solid, "solid_block", "solid_block"};
 
-		assets.tileSprites.set("solid_block", px::TileSprite{ "tiles/moss_on_cobble_tileset" });
+		assets.tileSprites.set("solid_block", px::TileSprite{ "solid_block" });
 
 		std::vector<px::Frame> idle{ {{{ 0, 32  }, { 32, 32 }}, sf::milliseconds(200)} };
 
