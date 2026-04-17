@@ -70,11 +70,11 @@ public:
 
 		px::BackgroundData background(
 			{
-				{ assets.textures.get("background/0"), 0.32768f },
-				{ assets.textures.get("background/1"), 0.4096f },
-				{ assets.textures.get("background/2"), 0.512f },
-				{ assets.textures.get("background/3"), 0.64f },
-				{ assets.textures.get("background/4"), 0.8f },
+				{ assets.textures.get("background/0"), 0.03125f },
+				{ assets.textures.get("background/1"), 0.0625f },
+				{ assets.textures.get("background/2"), 0.125f },
+				{ assets.textures.get("background/4"), 0.25f },
+				{ assets.textures.get("background/3"), 0.5f },
 				{ assets.textures.get("background/5"), 1.0f }
 			}
 		);
@@ -82,6 +82,15 @@ public:
 		assets.backgrounds.set("background", std::move(background));
 
 		assets.font = sf::Font("resources/Butterpop.otf");
+
+		EntityPrefab player;
+		player.emplace<Transform>(sf::Vector2f(3.5f, 3.5f), sf::Vector2f(0.0f, 0.0f));
+		player.emplace<Hitbox>(sf::Rect<float>(
+			sf::Vector2f(-0.25f, -0.25f),
+			sf::Vector2f(0.5f, 0.75f)
+		));
+		player.emplace<Controllable>();
+		m_ctx.entities.set("player", std::move(player));
 	}
 
 	void preEvent() override

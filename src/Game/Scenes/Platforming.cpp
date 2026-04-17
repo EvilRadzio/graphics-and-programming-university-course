@@ -25,15 +25,7 @@ Scenes::Platforming::Platforming(px::SceneInitCtx& ctx, Context& gctx) :
 	m_map.at({ 5, 4 }) = m_ctx.tiles.at("solid_block");
 	m_map.at({ 9, 8 }) = m_ctx.tiles.at("solid_block");
 
-	auto player = m_registry.create();
-	m_registry.emplace<Transform>(player, sf::Vector2f(3.5f, 3.5f), sf::Vector2f(0.0f, 0.0f));
-	m_registry.emplace<Hitbox>(player, sf::Rect<float>(
-		sf::Vector2f(-0.25f, -0.25f),
-		sf::Vector2f(0.5f, 0.75f)
-	));
-	m_registry.emplace<Controllable>(player);
-
-	m_cameraPosition = { 3.5f, 3.5f };
+	m_ctx.entities.get("player").spawn(m_registry);
 }
 
 void Scenes::Platforming::update(px::UpdateCtx& ctx)

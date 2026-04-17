@@ -12,8 +12,6 @@ struct Transform
 	sf::Vector2f oldPos{};
 };
 
-struct Gravity {};
-
 struct Controllable {
 	bool canJump{};
 };

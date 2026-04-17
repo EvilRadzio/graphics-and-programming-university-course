@@ -7,12 +7,14 @@
 
 namespace px
 {
+	// Maybe add const getters
+
 	template <typename ... Components>
 	class EntityPrefab
 	{
 	public:
 
-		entt::entity spawn(entt::registry& registry)
+		entt::entity spawn(entt::registry& registry) const
 		{
 			auto entity = registry.create();
 

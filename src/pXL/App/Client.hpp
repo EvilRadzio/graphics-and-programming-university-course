@@ -41,6 +41,12 @@ namespace px
 			std::function<void(const std::filesystem::path& path,
 				const std::string& name)>&& call);
 
+		struct ScaleSettings
+		{
+			sf::Vector2f minimumUnits{ 20.0f, 10.25f };
+			int32_t pixelsPerUnit{ 16 };
+		};
+
 		Assets assets;
 		sf::RenderWindow window;
 		SceneStack scenes;
@@ -49,10 +55,13 @@ namespace px
 		Mapping mapping{ frameInput };
 		Transition transition;
 
+		float unit{};
+
 		EngineApi engApi{
 			scenes,
 			assets,
-			mapping
+			mapping,
+			unit
 		};
 
 		SceneInitCtx apiScene{

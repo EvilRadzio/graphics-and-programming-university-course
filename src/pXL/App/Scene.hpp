@@ -23,6 +23,7 @@ namespace px
 		SceneCommands& comms;
 		const Assets& assets;
 		const Mapping& mapping;
+		const float& unit;
 	};
 
 	class Scene;
