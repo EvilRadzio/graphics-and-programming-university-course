@@ -330,6 +330,6 @@ void Scenes::Platforming::movementAndColisionSystem(px::UpdateCtx& ctx)
 		}
 
 		m_oldCameraPosition = m_cameraPosition;
-		m_cameraPosition = px::lerp(m_cameraPosition, transform.pos, 0.25f);
+		m_cameraPosition = px::lerp(m_cameraPosition, { transform.pos.x + m_dir * 1.0f, transform.pos.y - 1.0f }, 0.05f);
 	});
 }

@@ -82,11 +82,13 @@ namespace px
 		void popScene();
 
 		void flush();
-		void update(UpdateCtx& api);
-		void fixedUpdate(UpdateCtx& api);
-		void draw(DrawCtx& api) const;
+		void update(UpdateCtx& ctx);
+		void fixedUpdate(UpdateCtx& ctx);
+		void draw(DrawCtx& ctx) const;
+		void setOnChangeCallback(std::function<void()> callback);
 
 		std::unordered_map<std::string, SceneFactory> m_factories;
+		std::function<void()> m_onChangeCallback;
 		std::vector<SceneInstance> m_scenes;
 		std::optional<SceneRequest> m_request;
 		
@@ -203,23 +205,28 @@ namespace px
 
 		assert(!m_scenes.empty() && "Can't run onEnter() if the scene stack is empty");
 		m_scenes.back().ptr->onEnter(std::move(request.payload));
+
+		if (m_onChangeCallback)
+		{
+			m_onChangeCallback();
+		}
 	}
 
-	inline void SceneStack::update(UpdateCtx& api)
+	inline void SceneStack::update(UpdateCtx& ctx)
 	{
 		assert(!m_scenes.empty() && "Can't run update() a scene if the scene stack is empty");
 
-		m_scenes.back().ptr->update(api);
+		m_scenes.back().ptr->update(ctx);
 	}
 
-	inline void SceneStack::fixedUpdate(UpdateCtx& api)
+	inline void SceneStack::fixedUpdate(UpdateCtx& ctx)
 	{
 		assert(!m_scenes.empty() && "Can't run fixedUpdate() a scene if the scene stack is empty");
 
-		m_scenes.back().ptr->fixedUpdate(api);
+		m_scenes.back().ptr->fixedUpdate(ctx);
 	}
 
-	inline void SceneStack::draw(DrawCtx& api) const
+	inline void SceneStack::draw(DrawCtx& ctx) const
 	{
 		assert(!m_scenes.empty() && "Can't run draw() a scene if a scene stack is empty");
 
@@ -230,9 +237,22 @@ namespace px
 			--firstRenderable;
 		}
 
+		DrawCtx dummyCtx = ctx;
+		dummyCtx.alpha = 1.0f;
+
 		for (size_t i = firstRenderable; i < count; ++i)
 		{
-			m_scenes[i].ptr->draw(api);
+			if (i == count - 1)
+			{
+				m_scenes[i].ptr->draw(ctx);
+				continue;
+			}
+			m_scenes[i].ptr->draw(dummyCtx);
 		}
+	}
+
+	inline void SceneStack::setOnChangeCallback(std::function<void()> callback)
+	{
+		m_onChangeCallback = callback;
 	}
 }

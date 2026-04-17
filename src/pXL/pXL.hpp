@@ -5,3 +5,4 @@
 #include "Grid.hpp"
 #include "Registry.hpp"
 #include "Math.hpp"
+#include "EntityPrefab.hpp"

@@ -75,6 +75,11 @@ namespace px
 		window.setKeyRepeatEnabled(false);
 		ImGui::SFML::Init(window);
 		ImGui::GetIO().FontGlobalScale = 2.0f;
+
+		scenes.setOnChangeCallback([&]() {
+			frameInput.newUpdate();
+			tickInput.newUpdate();
+		});
 	}
 
 	inline Client::~Client()
@@ -113,9 +118,8 @@ namespace px
 			postEventPreUpdate();
 
 			sf::Time realDt = clock.restart();
-			acumulator += realDt;
-
-			acumulator = std::min(acumulator, k_fixedDt * 4.001f);
+			
+			acumulator = std::min(acumulator + realDt, k_fixedDt * 4.001f);
 
 			UpdateCtx fixedUpdateApi{
 				window,
