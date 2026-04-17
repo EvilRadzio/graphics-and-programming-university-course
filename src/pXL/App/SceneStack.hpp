@@ -245,9 +245,12 @@ namespace px
 			if (i == count - 1)
 			{
 				m_scenes[i].ptr->draw(ctx);
-				continue;
 			}
-			m_scenes[i].ptr->draw(dummyCtx);
+			else
+			{
+				m_scenes[i].ptr->draw(dummyCtx);
+			}
+			ctx.window.setView(ctx.window.getDefaultView());
 		}
 	}
 

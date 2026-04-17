@@ -120,8 +120,6 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 			ctx.window.draw(sprite);
 		}
 	});
-
-	ctx.window.setView(ctx.window.getDefaultView());
 }
 
 void Scenes::Platforming::playerControlSystem(px::UpdateCtx& ctx)
