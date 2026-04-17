@@ -13,8 +13,7 @@ namespace px
 {
 	class Client;
 
-	static constexpr uint32_t k_scanCodeNoUnknownCount = sf::Keyboard::ScancodeCount - 1;
-	static constexpr uint32_t k_allButtonsCount = k_scanCodeNoUnknownCount + sf::Mouse::ButtonCount;
+	constexpr uint32_t k_allButtonsCount = sf::Keyboard::ScancodeCount + sf::Mouse::ButtonCount;
 
 	enum class InputId : uint8_t
 	{
@@ -81,6 +80,13 @@ namespace px
 		bool isHeld(const std::string& action) const;
 
 		void set(const std::string& action, InputId input);
+
+		bool isPressed(InputId input) const;
+		bool isReleased(InputId input) const;
+		bool isHeld(InputId input) const;
+		std::optional<InputId> getJustPressed() const;
+		sf::Vector2i getMousePosition() const;
+		sf::Vector2i getMouseDelta() const;
 
 	private:
 
@@ -312,7 +318,15 @@ namespace px
 		if (e.is<sf::Event::FocusLost>())
 		{
 			m_pressed.reset();
-			m_released.reset();
+			
+			for (size_t i = 0; i < k_allButtonsCount; ++i)
+			{
+				if (m_held[i])
+				{
+					m_released.set(i, true);
+				}
+			}
+
 			m_held.reset();
 		}
 		else if (e.is<sf::Event::KeyPressed>())
@@ -337,15 +351,15 @@ namespace px
 		{
 			const auto button = e.getIf<sf::Event::MouseButtonPressed>();
 
-			m_pressed.set(k_scanCodeNoUnknownCount + static_cast<size_t>(button->button), true);
-			m_held.set(k_scanCodeNoUnknownCount + static_cast<size_t>(button->button), true);
+			m_pressed.set(sf::Keyboard::ScancodeCount + static_cast<size_t>(button->button), true);
+			m_held.set(sf::Keyboard::ScancodeCount + static_cast<size_t>(button->button), true);
 		}
 		else if (e.is<sf::Event::MouseButtonReleased>())
 		{
 			const auto button = e.getIf<sf::Event::MouseButtonReleased>();
 
-			m_released.set(k_scanCodeNoUnknownCount + static_cast<size_t>(button->button), true);
-			m_held.set(k_scanCodeNoUnknownCount + static_cast<size_t>(button->button), false);
+			m_released.set(sf::Keyboard::ScancodeCount + static_cast<size_t>(button->button), true);
+			m_held.set(sf::Keyboard::ScancodeCount + static_cast<size_t>(button->button), false);
 		}
 		else if (e.is<sf::Event::MouseMoved>())
 		{
@@ -395,6 +409,36 @@ namespace px
 	inline void Mapping::set(const std::string& action, InputId input)
 	{
 		m_binds.insert_or_assign(action, input);
+	}
+
+	inline bool Mapping::isPressed(InputId input) const
+	{
+		return m_input->isPressed(input);
+	}
+
+	inline bool Mapping::isReleased(InputId input) const
+	{
+		return m_input->isReleased(input);
+	}
+
+	inline bool Mapping::isHeld(InputId input) const
+	{
+		return m_input->isHeld(input);
+	}
+
+	inline std::optional<InputId> Mapping::getJustPressed() const
+	{
+		return m_input->getJustPressed();
+	}
+
+	inline sf::Vector2i Mapping::getMousePosition() const
+	{
+		return m_input->getMousePosition();
+	}
+
+	inline sf::Vector2i Mapping::getMouseDelta() const
+	{
+		return m_input->getMouseDelta();
 	}
 
 	inline void Mapping::setUnderlyingInput(const Input& input)

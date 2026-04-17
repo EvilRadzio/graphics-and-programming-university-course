@@ -11,13 +11,13 @@ namespace Scenes
 	{
 	public:
 			
-		LevelEditor(px::ApiScene api, Context& ctx);
+		LevelEditor(px::SceneInitCtx ctx, Context& gctx);
 
-		void update(px::ApiUpdate& api) override;
-		void draw(px::ApiDraw& api) const override;
+		void update(px::UpdateCtx& ctx) override;
+		void draw(px::DrawCtx& ctx) const override;
 		void resizeMap();
 	private:
-		Context& ctx;
+		Context& m_ctx;
 		sf::Vector2i lastMousePos;
 		sf::Vector2i viewPosition{0,0};
 		std::unordered_map<std::string, Tile> LE_tiles;

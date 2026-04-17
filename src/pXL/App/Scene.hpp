@@ -18,27 +18,50 @@ namespace px
 	class Transition;
 	class Mapping;
 
-	struct ApiDraw
+	struct EngineApi
 	{
-		sf::RenderTarget& window;
+		SceneCommands& comms;
 		const Assets& assets;
+		const Mapping& mapping;
+		const float& unit;
 	};
 
-	struct ApiUpdate
+	class Scene;
+	class Client;
+
+	class SceneInitCtx
+	{
+	public:
+
+		SceneInitCtx(SceneConfig& properties, Transition& transition, EngineApi api) :
+			properties(properties),
+			transition(transition),
+			api(api)
+		{}
+
+		SceneConfig& properties;
+		Transition& transition;
+
+	private:
+
+		EngineApi api;
+
+		friend Scene;
+		friend Client;
+	};
+
+	struct UpdateCtx
 	{
 		const sf::Window& window;
 		const sf::Time dt;
 		Transition& transition;
 	};
 
-	struct ApiScene
+	struct DrawCtx
 	{
-		SceneCommands& comms;
-		const InputRaw& input;
+		sf::RenderTarget& window;
 		const Assets& assets;
-		SceneConfig& properties;
-		Transition& transition;
-		const Mapping& mapping;
+		float alpha{};
 	};
 
 	class SceneStack;
@@ -47,17 +70,17 @@ namespace px
 	{
 	public:
 
-		Scene(const ApiScene& api) : scene(api) {}
+		Scene(const SceneInitCtx& ctx) : api(ctx.api) {}
 		virtual ~Scene() = default;
 
 		virtual void onEnter(std::any&& payload) {}
-		virtual void update(ApiUpdate& api) {}
-		virtual void fixedUpdate(ApiUpdate& api) {}
-		virtual void draw(ApiDraw& api) const = 0;
+		virtual void update(UpdateCtx& ctx) {}
+		virtual void fixedUpdate(UpdateCtx& ctx) {}
+		virtual void draw(DrawCtx& ctx) const = 0;
 
 	protected:
 
-		ApiScene scene;
+		EngineApi api;
 
 	private:
 

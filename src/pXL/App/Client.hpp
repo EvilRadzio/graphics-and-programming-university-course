@@ -9,7 +9,6 @@
 #include <imgui.h>
 
 #include "SceneStack.hpp"
-#include "InputRaw.hpp"
 #include "Transition.hpp"
 #include "Input.hpp"
 
@@ -19,6 +18,10 @@ namespace px
 	{
 	public:
 
+		void run();
+
+	protected:
+
 		Client();
 		virtual ~Client();
 
@@ -26,10 +29,6 @@ namespace px
 		Client(Client&&) = delete;
 		Client& operator=(const Client&) = delete;
 		Client& operator=(Client&&) = delete;
-
-		void run();
-
-	protected:
 
 		virtual void interceptEvent(const sf::Event& event) {}
 
@@ -42,22 +41,33 @@ namespace px
 			std::function<void(const std::filesystem::path& path,
 				const std::string& name)>&& call);
 
+		struct ScaleSettings
+		{
+			sf::Vector2f minimumUnits{ 20.0f, 10.25f };
+			int32_t pixelsPerUnit{ 16 };
+		};
+
 		Assets assets;
 		sf::RenderWindow window;
 		SceneStack scenes;
-		InputRaw deprecatedInput;
 		Input frameInput;
 		Input tickInput;
 		Mapping mapping{ frameInput };
 		Transition transition;
 
-		ApiScene apiScene{
+		float unit{};
+
+		EngineApi engApi{
 			scenes,
-			deprecatedInput,
 			assets,
+			mapping,
+			unit
+		};
+
+		SceneInitCtx apiScene{
 			scenes,
 			transition,
-			mapping
+			engApi
 		};
 
 		bool showFps{};
@@ -74,6 +84,11 @@ namespace px
 		window.setKeyRepeatEnabled(false);
 		ImGui::SFML::Init(window);
 		ImGui::GetIO().FontGlobalScale = 2.0f;
+
+		scenes.setOnChangeCallback([&]() {
+			frameInput.newUpdate();
+			tickInput.newUpdate();
+		});
 	}
 
 	inline Client::~Client()
@@ -92,12 +107,10 @@ namespace px
 
 			preEvent();
 
-			deprecatedInput.newTick();
 			frameInput.newUpdate();
 
 			while (const auto event = window.pollEvent())
 			{
-				deprecatedInput.readEvent(*event);
 				frameInput.readEvent(*event);
 				tickInput.readEvent(*event);
 
@@ -114,9 +127,10 @@ namespace px
 			postEventPreUpdate();
 
 			sf::Time realDt = clock.restart();
-			acumulator += realDt;
+			
+			acumulator = std::min(acumulator + realDt, k_fixedDt * 4.001f);
 
-			ApiUpdate fixedUpdateApi{
+			UpdateCtx fixedUpdateApi{
 				window,
 				k_fixedDt,
 				transition
@@ -135,9 +149,9 @@ namespace px
 
 			mapping.setUnderlyingInput(frameInput);
 
-			transition.update(k_fixedDt.asSeconds());
+			transition.update(realDt.asSeconds());
 
-			ApiUpdate updateApi{
+			UpdateCtx updateApi{
 				window,
 				realDt,
 				transition
@@ -147,12 +161,15 @@ namespace px
 
 			postUpdatePreDraw();
 
-			window.clear(sf::Color::Black);
+			float alpha = acumulator / k_fixedDt;
 
-			ApiDraw drawApi{
+			DrawCtx drawApi{
 				window,
-				assets
+				assets,
+				alpha
 			};
+
+			window.clear(sf::Color::Black);
 
 			scenes.draw(drawApi);
 
