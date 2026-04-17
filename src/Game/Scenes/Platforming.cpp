@@ -61,10 +61,12 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 	auto view = m_registry.view<const Controllable, const Transform>();
 	
 	view.each([&](const auto& _, const auto& transform) {
-		ctx.window.draw(px::Background(api.assets.backgrounds.get("background"), transform.pos.x * tileSide));
+		sf::Vector2f position = px::lerp(transform.oldPos, transform.pos, ctx.alpha);
+
+		ctx.window.draw(px::Background(api.assets.backgrounds.get("background"), position.x * tileSide));
 
 		sf::View view(
-			transform.pos * static_cast<float>(ctx.window.getSize().x / 10.0f),
+			position * static_cast<float>(ctx.window.getSize().x / 10.0f),
 			static_cast<sf::Vector2f>(ctx.window.getSize())
 		);
 
@@ -95,12 +97,13 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 	}
 
 	view.each([&](const auto& _, const auto& transform) {
+		sf::Vector2f position = px::lerp(transform.oldPos, transform.pos, ctx.alpha) * static_cast<float>(tileSide);
 		if (transform.vel.x == 0.0f)
 		{
 			px::Sprite sprite(api.assets.sprites.get("knight"), "idle", m_elapsed);
 			sprite.setScale({ 4,4 });
 			sprite.setOrigin({ 16, 23 });
-			sprite.setPosition(transform.pos * static_cast<float>(tileSide));
+			sprite.setPosition(position);
 
 			if (m_dir < 0) sprite.setMirrored(true);
 
@@ -111,7 +114,7 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 			px::Sprite sprite(api.assets.sprites.get("knight"), "run", m_elapsed);
 			sprite.setScale({ 4,4 });
 			sprite.setOrigin({ 16, 23 });
-			sprite.setPosition(transform.pos * static_cast<float>(tileSide));
+			sprite.setPosition(position);
 
 			if (m_dir < 0) sprite.setMirrored(true);
 
@@ -178,6 +181,8 @@ void Scenes::Platforming::movementAndColisionSystem(px::UpdateCtx& ctx)
 	auto view = m_registry.view<Transform, Hitbox, Controllable>();
 
 	view.each([&](auto& transform, auto& hitbox, auto& controllable) {
+		transform.oldPos = transform.pos;
+
 		sf::FloatRect rect = hitbox.rect;
 
 		int32_t minY = rect.position.y + transform.pos.y;

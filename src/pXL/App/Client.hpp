@@ -18,6 +18,10 @@ namespace px
 	{
 	public:
 
+		void run();
+
+	protected:
+
 		Client();
 		virtual ~Client();
 
@@ -25,10 +29,6 @@ namespace px
 		Client(Client&&) = delete;
 		Client& operator=(const Client&) = delete;
 		Client& operator=(Client&&) = delete;
-
-		void run();
-
-	protected:
 
 		virtual void interceptEvent(const sf::Event& event) {}
 
