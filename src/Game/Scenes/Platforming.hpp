@@ -34,6 +34,10 @@ namespace Scenes
 
 		Map m_map;
 
+		sf::Vector2f m_cameraPosition, m_oldCameraPosition;
+
+		std::optional<sf::Time> m_jumpBuffer;
+
 		int32_t m_dir{ 1 };
 	};
 }

@@ -32,10 +32,14 @@ Scenes::Platforming::Platforming(px::SceneInitCtx& ctx, Context& gctx) :
 		sf::Vector2f(0.5f, 0.75f)
 	));
 	m_registry.emplace<Controllable>(player);
+
+	m_cameraPosition = { 3.5f, 3.5f };
 }
 
 void Scenes::Platforming::update(px::UpdateCtx& ctx)
 {
+	m_elapsed += ctx.dt;
+
 	if (api.mapping.isPressed("Pause"))
 	{
 		api.comms.push("Pause");
@@ -44,8 +48,6 @@ void Scenes::Platforming::update(px::UpdateCtx& ctx)
 
 void Scenes::Platforming::fixedUpdate(px::UpdateCtx& ctx)
 {
-	m_elapsed += ctx.dt;
-
 	playerControlSystem(ctx);
 
 	movementAndColisionSystem(ctx);
@@ -57,11 +59,9 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 
 	sf::Vector2u size = m_map.size();
 	uint32_t tileSide = 720 / size.y;
-
-	auto view = m_registry.view<const Controllable, const Transform>();
 	
-	view.each([&](const auto& _, const auto& transform) {
-		sf::Vector2f position = px::lerp(transform.oldPos, transform.pos, ctx.alpha);
+	{
+		sf::Vector2f position = px::lerp(m_oldCameraPosition, m_cameraPosition, ctx.alpha);
 
 		ctx.window.draw(px::Background(api.assets.backgrounds.get("background"), position.x * tileSide));
 
@@ -71,7 +71,9 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 		);
 
 		ctx.window.setView(view);
-	});
+	}
+
+	auto view = m_registry.view<const Controllable, const Transform>();
 
 	for (size_t y = 0; y < size.y; ++y) for (size_t x = 0; x < size.x; ++x)
 	{
@@ -129,22 +131,39 @@ void Scenes::Platforming::playerControlSystem(px::UpdateCtx& ctx)
 {
 	constexpr float k_acceleration = 25.0f;
 	constexpr float k_deceleration = 25.0f;
-	constexpr float k_maxSpeed = 5.0f;
+	constexpr float k_maxSpeed = 6.0f;
 	constexpr float k_jumpVelocity = 13.25f;
 	constexpr float k_downAcceleration = 30.0f;
 	constexpr float k_maxDownAcceleration = 20.0f;
+	constexpr float k_fallMultiplayer = 1.5f;
+
+	constexpr sf::Time k_bufferedJumpLimit = sf::milliseconds(150);
+
+	if (api.mapping.isPressed("Jump"))
+	{
+		m_jumpBuffer = sf::Time::Zero;
+	}
+	else if (m_jumpBuffer)
+	{
+		m_jumpBuffer.value() += ctx.dt;
+	}
 
 	auto view = m_registry.view<Controllable, Transform>();
 
 	view.each([&](auto& controllable, auto& transform) {
-		if (api.mapping.isPressed("Jump") && controllable.canJump)
+		if (m_jumpBuffer && m_jumpBuffer.value() <= k_bufferedJumpLimit && controllable.canJump)
 		{
+			m_jumpBuffer = {};
 			transform.vel.y = -k_jumpVelocity;
 			controllable.canJump = false;
 		}
-		else
+		else if (transform.vel.y < 0.0f)
 		{
 			transform.vel.y = std::min(transform.vel.y + k_downAcceleration * ctx.dt.asSeconds(), k_maxDownAcceleration);
+		}
+		else
+		{
+			transform.vel.y = std::min(transform.vel.y + k_downAcceleration * k_fallMultiplayer * ctx.dt.asSeconds(), k_maxDownAcceleration);
 		}
 
 		int32_t direction = 0 - api.mapping.isHeld("Left") + api.mapping.isHeld("Right");
@@ -303,5 +322,8 @@ void Scenes::Platforming::movementAndColisionSystem(px::UpdateCtx& ctx)
 
 			transform.pos.y = currentY - (rect.size.y + rect.position.y);
 		}
+
+		m_oldCameraPosition = m_cameraPosition;
+		m_cameraPosition = px::lerp(m_cameraPosition, transform.pos, 0.25f);
 	});
 }
