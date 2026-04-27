@@ -14,4 +14,5 @@ struct Transform
 
 struct Controllable {
 	bool canJump{};
+	bool grounded{};
 };

@@ -72,11 +72,11 @@ namespace px
 		friend Sprite;
 	};
 
-	class SpriteData
+	class SpritePrefab
 	{
 	public:
 
-		SpriteData(const sf::Texture& texture) :
+		SpritePrefab(const sf::Texture& texture) :
 			m_texture(&texture) {}
 
 		void setClip(const std::string& name, Clip&& clip)
@@ -92,32 +92,82 @@ namespace px
 		friend Sprite;
 	};
 
+	class Animation
+	{
+	public:
+
+		Animation() = default;
+
+		Animation(const std::string& animation) :
+			m_animation(animation)
+		{}
+
+		Animation(const std::string& animation, sf::Time animationElapsed) :
+			m_animation(animation),
+			m_animationElapsed(animationElapsed)
+		{}
+
+		void startAnimation(const std::string& animation)
+		{
+			m_animation = animation;
+			m_animationElapsed = sf::Time::Zero;
+		}
+
+		void animate(const std::string& animation)
+		{
+			if (m_animation != animation)
+			{
+				m_animationElapsed = sf::Time::Zero;
+			}
+			m_animation = animation;
+		}
+
+		void setMirrored(bool mirrored) {
+			m_mirrored = mirrored;
+		}
+
+		bool isMirrored() const {
+			return m_mirrored;
+		}
+
+		void update(const sf::Time variableDt)
+		{
+			m_animationElapsed += variableDt;
+		}
+
+	private:
+
+		std::string m_animation;
+		sf::Time m_animationElapsed;
+		bool m_mirrored{};
+
+		friend Sprite;
+	};
+
 	class Sprite : public sf::Drawable, public sf::Transformable
 	{
 	public:
 
-		Sprite(const SpriteData& spriteData, const std::string& state, const sf::Time elapsed) :
-			m_state(state),
-			m_spriteData(spriteData),
+		Sprite(const SpritePrefab& spritePrefab, const Animation& spriteInfo, const sf::Time elapsed) :
+			m_spritePrefab(spritePrefab),
+			m_spriteInfo(spriteInfo),
 			m_elapsed(elapsed)
 		{}
-
-		void setMirrored(bool mirrored) { m_mirrored = mirrored; }
-		bool isMirrored() const { return m_mirrored; }
 
 	private:
 
 		void draw(sf::RenderTarget& target, sf::RenderStates states) const override
 		{
-			if (!m_spriteData.m_clips.count(m_state))
+			if (!m_spritePrefab.m_clips.count(m_spriteInfo.m_animation))
 			{
 				return;
 			}
 
-			sf::Sprite sprite(*m_spriteData.m_texture);
-			sf::IntRect rect = m_spriteData.m_clips.at(m_state).getFrameRect(m_elapsed);
+			sf::Sprite sprite(*m_spritePrefab.m_texture);
+			bool looping = m_spritePrefab.m_clips.at(m_spriteInfo.m_animation).looping();
+			sf::IntRect rect = m_spritePrefab.m_clips.at(m_spriteInfo.m_animation).getFrameRect(looping? m_elapsed : m_spriteInfo.m_animationElapsed);
 
-			if (m_mirrored)
+			if (m_spriteInfo.m_mirrored)
 			{
 				int32_t width = rect.size.x;
 				rect.size.x = -width;
@@ -132,10 +182,9 @@ namespace px
 			target.draw(sprite);
 		}
 
-		const std::string m_state;
-		const SpriteData& m_spriteData;
-		const sf::Time m_elapsed;
-		bool m_mirrored{};
+		const SpritePrefab& m_spritePrefab;
+		const Animation& m_spriteInfo;
+		sf::Time m_elapsed;
 
 		friend sf::RenderTarget;
 	};

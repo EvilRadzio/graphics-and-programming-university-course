@@ -49,7 +49,7 @@ public:
 
 		assets.tileSprites.set("solid_block", px::TileSprite{ "solid_block" });
 
-		std::vector<px::Frame> idle{ {{{ 0, 32  }, { 32, 32 }}, sf::milliseconds(200)} };
+		std::vector<px::Frame> idle{ {{{ 0, 64  }, { 32, 32 }}, sf::milliseconds(200)} };
 
 		std::vector<px::Frame> run;
 		for (int32_t x = 0; x < 10; ++x)
@@ -57,14 +57,30 @@ public:
 			run.push_back({ sf::IntRect({x * 32, 0}, {32, 32}), sf::milliseconds(75) });
 		}
 
+		std::vector<px::Frame> jump;
+		for (int32_t x = 0; x < 5; ++x)
+		{
+			jump.push_back({ sf::IntRect({x * 32, 32}, {32, 32}), sf::milliseconds(75) });
+		}
+
+		std::vector<px::Frame> fall;
+		for (int32_t x = 5; x < 7; ++x)
+		{
+			fall.push_back({ sf::IntRect({x * 32, 32}, {32, 32}), sf::milliseconds(100) });
+		}
+
 		px::Clip idleClip(std::move(idle));
 		idleClip.setLooping(true);
 		px::Clip runClip(std::move(run));
 		runClip.setLooping(true);
+		px::Clip jumpClip(std::move(jump));
+		px::Clip fallClip(std::move(fall));
 
-		px::SpriteData animations(assets.textures.get("entities/player"));
+		px::SpritePrefab animations(assets.textures.get("entities/player"));
 		animations.setClip("idle", std::move(idleClip));
 		animations.setClip("run", std::move(runClip));
+		animations.setClip("jump", std::move(jumpClip));
+		animations.setClip("fall", std::move(fallClip));
 
 		assets.sprites.set("knight", std::move(animations));
 

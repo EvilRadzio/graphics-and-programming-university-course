@@ -5,25 +5,41 @@
 Scenes::Platforming::Platforming(px::SceneInitCtx& ctx, Context& gctx) :
 	Scene(ctx),
 	m_ctx(gctx),
-	m_map(sf::Vector2u(100, 10), m_ctx.tiles["empty"])
+	m_map(sf::Vector2u(40, 20), m_ctx.tiles["empty"])
 {
+	const char* mapBuilder[]{
+		"########################################",
+		"#                                      #",
+		"#                                ##    #",
+		"#   ######          #####              #",
+		"#                                      #",
+		"#          ###               ##        #",
+		"#                                      #",
+		"#                       ##             #",
+		"#### ##############                    #",
+		"#                                      #",
+		"#  #                  ####             #",
+		"#     ##    #                          #",
+		"#                           #          #",
+		"#                                      #",
+		"#    ##   ###                  #       #",
+		"#                    #                 #",
+		"##               #         #           #",
+		"#                                      #",
+		"#                                      #",
+		"########################################",
+	};
+
 	for (uint32_t y = 0; y < m_map.size().y; ++y)
 	{
 		for (uint32_t x = 0; x < m_map.size().x; ++x)
 		{
-			if (x == 0 || x == m_map.size().x - 1 || y == 0 || y == m_map.size().y - 1)
+			if (mapBuilder[y][x] == '#')
 			{
-				m_map.at({ x, y }) = m_ctx.tiles["solid_block"];
+				m_map.at({ x, y }) = m_ctx.tiles.at("solid_block");
 			}
 		}
 	}
-
-	m_map.at({ 7, 7 }) = m_ctx.tiles.at("solid_block");
-	m_map.at({ 4, 3 }) = m_ctx.tiles.at("solid_block");
-	m_map.at({ 6, 7 }) = m_ctx.tiles.at("solid_block");
-	m_map.at({ 2, 5 }) = m_ctx.tiles.at("solid_block");
-	m_map.at({ 5, 4 }) = m_ctx.tiles.at("solid_block");
-	m_map.at({ 9, 8 }) = m_ctx.tiles.at("solid_block");
 
 	m_ctx.entities.get("player").spawn(m_registry);
 }
@@ -36,6 +52,8 @@ void Scenes::Platforming::update(px::UpdateCtx& ctx)
 	{
 		api.comms.push("Pause");
 	}
+
+	advanceAnimation(ctx);
 }
 
 void Scenes::Platforming::fixedUpdate(px::UpdateCtx& ctx)
@@ -50,20 +68,21 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 	ctx.window.clear(sf::Color::Blue);
 
 	sf::Vector2u size = m_map.size();
-	uint32_t tileSide = 720 / size.y;
 	
 	{
 		sf::Vector2f windowSize = static_cast<sf::Vector2f>(ctx.window.getSize());
-		sf::Vector2f halfScreenTiles = windowSize / static_cast<float>(tileSide) / 2.0f;
+		sf::Vector2f halfScreenTiles = windowSize / static_cast<float>(ctx.unitPixels) / 2.0f;
 
 		sf::Vector2f position = px::lerp(m_oldCameraPosition, m_cameraPosition, ctx.alpha);
-		position.x = std::clamp(position.x, halfScreenTiles.x, static_cast<float>(m_map.size().x) - halfScreenTiles.x);
-		position.y = std::clamp(position.y, halfScreenTiles.x, static_cast<float>(m_map.size().y) - halfScreenTiles.y);
+		position.x = std::min(position.x, m_map.size().x - halfScreenTiles.x);
+		position.y = std::min(position.y, m_map.size().y - halfScreenTiles.y);
+		position.x = std::max(position.x, halfScreenTiles.x);
+		position.y = std::max(position.y, halfScreenTiles.y);
 
-		ctx.window.draw(px::Background(api.assets.backgrounds.get("background"), position.x * tileSide));
+		ctx.window.draw(px::Background(api.assets.backgrounds.get("background"), position.x * ctx.unitPixels));
 
 		sf::View view(
-			position * static_cast<float>(ctx.window.getSize().x / 10.0f),
+			position * static_cast<float>(ctx.unitPixels),
 			static_cast<sf::Vector2f>(ctx.window.getSize())
 		);
 
@@ -81,14 +100,14 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 			auto sprite(api.assets.tileSprites.get(m_map.at(position).sprite).get(getAdjacent(m_map, position), api.assets.textures));
 
 			sprite.setPosition(sf::Vector2f{
-				static_cast<float>(x * tileSide),
-				static_cast<float>(y * tileSide)
+				static_cast<float>(x * ctx.unitPixels),
+				static_cast<float>(y * ctx.unitPixels)
 			});
 
 			auto bounds = sprite.getLocalBounds();
 			sprite.setScale(sf::Vector2f{
-				static_cast<float>(tileSide) / bounds.size.x,
-				static_cast<float>(tileSide) / bounds.size.y
+				static_cast<float>(ctx.unitPixels) / bounds.size.x,
+				static_cast<float>(ctx.unitPixels) / bounds.size.y
 			});
 
 			ctx.window.draw(sprite);
@@ -96,36 +115,46 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 	}
 
 	view.each([&](const auto& _, const auto& transform) {
-		sf::Vector2f position = px::lerp(transform.oldPos, transform.pos, ctx.alpha) * static_cast<float>(tileSide);
+		sf::Vector2f position = px::lerp(transform.oldPos, transform.pos, ctx.alpha) * static_cast<float>(ctx.unitPixels);
+
+		px::Sprite sprite(api.assets.sprites.get("knight"), m_animation, m_elapsed);
+		sprite.setScale(sf::Vector2f{ 1, 1 } *ctx.baseMultiplier);
+		sprite.setOrigin({ 16, 24 });
+		sprite.setPosition(position);
+		ctx.window.draw(sprite);
+	});
+}
+
+void Scenes::Platforming::advanceAnimation(px::UpdateCtx& ctx)
+{
+	auto view = m_registry.view<const Controllable, const Transform>();
+	view.each([&](const auto& controllable, const auto& transform) {
+		m_animation.setMirrored(m_dir == -1);
+		m_animation.update(ctx.dt);
+
+		if (!controllable.grounded)
+		{
+			if (transform.vel.y < 0.0f)
+			{
+				m_animation.animate("jump");
+				return;
+			}
+			m_animation.animate("fall");
+			return;
+		}
 		if (transform.vel.x == 0.0f)
 		{
-			px::Sprite sprite(api.assets.sprites.get("knight"), "idle", m_elapsed);
-			sprite.setScale({ 4,4 });
-			sprite.setOrigin({ 16, 23 });
-			sprite.setPosition(position);
-
-			if (m_dir < 0) sprite.setMirrored(true);
-
-			ctx.window.draw(sprite);
+			m_animation.animate("idle");
+			return;
 		}
-		else
-		{
-			px::Sprite sprite(api.assets.sprites.get("knight"), "run", m_elapsed);
-			sprite.setScale({ 4,4 });
-			sprite.setOrigin({ 16, 23 });
-			sprite.setPosition(position);
-
-			if (m_dir < 0) sprite.setMirrored(true);
-
-			ctx.window.draw(sprite);
-		}
+		m_animation.animate("run");
 	});
 }
 
 void Scenes::Platforming::playerControlSystem(px::UpdateCtx& ctx)
 {
 	constexpr float k_acceleration = 25.0f;
-	constexpr float k_deceleration = 25.0f;
+	constexpr float k_deceleration = 35.0f;
 	constexpr float k_maxSpeed = 6.0f;
 	constexpr float k_jumpVelocity = 13.25f;
 	constexpr float k_downAcceleration = 30.0f;
@@ -279,11 +308,8 @@ void Scenes::Platforming::movementAndColisionSystem(px::UpdateCtx& ctx)
 				{
 					currentY -= 1e-3f;
 				}
-				else
-				{
-					transform.vel.y = 0.0f;
-				}
 			}
+			controllable.grounded = false;
 
 			transform.pos.y = currentY - rect.position.y;
 		}
@@ -315,6 +341,7 @@ void Scenes::Platforming::movementAndColisionSystem(px::UpdateCtx& ctx)
 					controllable.canJump = true;
 				}
 			}
+			controllable.grounded = colided;
 
 			transform.pos.y = currentY - (rect.size.y + rect.position.y);
 		}

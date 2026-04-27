@@ -23,12 +23,15 @@ namespace Scenes
 
 	private:
 
-		void playerControlSystem(px::UpdateCtx& api);
-		void movementAndColisionSystem(px::UpdateCtx& api);
+		void advanceAnimation(px::UpdateCtx& ctx);
+		void playerControlSystem(px::UpdateCtx& ctx);
+		void movementAndColisionSystem(px::UpdateCtx& ctx);
 
 		Context& m_ctx;
 
 		entt::registry m_registry;
+		
+		px::Animation m_animation;
 
 		sf::Time m_elapsed;
 

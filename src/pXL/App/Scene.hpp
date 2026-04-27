@@ -62,6 +62,8 @@ namespace px
 		sf::RenderTarget& window;
 		const Assets& assets;
 		float alpha{};
+		float unitPixels{};
+		float baseMultiplier{};
 	};
 
 	class SceneStack;

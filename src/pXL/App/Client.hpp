@@ -7,6 +7,7 @@
 #include <SFML/Graphics.hpp>
 #include <imgui-SFML.h>
 #include <imgui.h>
+#include <spdlog/spdlog.h>
 
 #include "SceneStack.hpp"
 #include "Transition.hpp"
@@ -44,7 +45,7 @@ namespace px
 		struct ScaleSettings
 		{
 			sf::Vector2f minimumUnits{ 20.0f, 10.25f };
-			int32_t pixelsPerUnit{ 16 };
+			uint32_t pixelsPerUnit{ 16 };
 		};
 
 		Assets assets;
@@ -55,7 +56,10 @@ namespace px
 		Mapping mapping{ frameInput };
 		Transition transition;
 
+		ScaleSettings scaleSettings;
+
 		float unit{};
+		float baseMultiplier{};
 
 		EngineApi engApi{
 			scenes,
@@ -79,7 +83,7 @@ namespace px
 	};
 
 	inline Client::Client() :
-		window(sf::VideoMode(sf::Vector2u{ 720,720 }), "Game", sf::Style::Close)
+		window(sf::VideoMode(sf::Vector2u{ 1280,720 }), "Game", sf::Style::Default)
 	{
 		window.setKeyRepeatEnabled(false);
 		ImGui::SFML::Init(window);
@@ -89,6 +93,17 @@ namespace px
 			frameInput.newUpdate();
 			tickInput.newUpdate();
 		});
+
+		auto [minUnits, pixelsPerUnit] = scaleSettings;
+		auto minimumWindowSize = static_cast<sf::Vector2u>(minUnits * static_cast<float>(pixelsPerUnit));
+		window.setMinimumSize(minimumWindowSize);
+		auto windowSize = static_cast<sf::Vector2f>(window.getSize());
+		sf::Vector2f ratios{
+			windowSize.x / minimumWindowSize.x,
+			windowSize.y / minimumWindowSize.y
+		};
+		baseMultiplier = static_cast<uint32_t>(std::min(ratios.x, ratios.y));
+		unit = pixelsPerUnit * baseMultiplier;
 	}
 
 	inline Client::~Client()
@@ -124,26 +139,20 @@ namespace px
 				}
 			}
 
+			auto [minUnits, pixelsPerUnit] = scaleSettings;
+			auto minimumWindowSize = static_cast<sf::Vector2u>(minUnits * static_cast<float>(pixelsPerUnit));
+			window.setMinimumSize(minimumWindowSize);
+			auto windowSize = static_cast<sf::Vector2f>(window.getSize());
+			sf::Vector2f ratios{
+				windowSize.x / minimumWindowSize.x,
+				windowSize.y / minimumWindowSize.y
+			};
+			baseMultiplier = static_cast<uint32_t>(std::min(ratios.x, ratios.y));
+			unit = pixelsPerUnit * baseMultiplier;
+
 			postEventPreUpdate();
 
 			sf::Time realDt = clock.restart();
-			
-			acumulator = std::min(acumulator + realDt, k_fixedDt * 4.001f);
-
-			UpdateCtx fixedUpdateApi{
-				window,
-				k_fixedDt,
-				transition
-			};
-
-			mapping.setUnderlyingInput(tickInput);
-
-			while (acumulator >= k_fixedDt)
-			{
-				scenes.fixedUpdate(fixedUpdateApi);
-				tickInput.newUpdate();
-				acumulator -= k_fixedDt;
-			}
 
 			ImGui::SFML::Update(window, realDt);
 
@@ -151,27 +160,46 @@ namespace px
 
 			transition.update(realDt.asSeconds());
 
-			UpdateCtx updateApi{
+			UpdateCtx updateCtx{
 				window,
 				realDt,
 				transition
 			};
 
-			scenes.update(updateApi);
+			scenes.update(updateCtx);
+
+			acumulator = std::min(acumulator + realDt, k_fixedDt * 4.001f);
+
+			mapping.setUnderlyingInput(tickInput);
+
+			UpdateCtx fixedUpdateCtx{
+				window,
+				k_fixedDt,
+				transition
+			};
+
+			while (acumulator >= k_fixedDt)
+			{
+				scenes.fixedUpdate(fixedUpdateCtx);
+				tickInput.newUpdate();
+				acumulator -= k_fixedDt;
+			}
 
 			postUpdatePreDraw();
 
 			float alpha = acumulator / k_fixedDt;
 
-			DrawCtx drawApi{
+			DrawCtx drawCtx{
 				window,
 				assets,
-				alpha
+				alpha,
+				unit,
+				baseMultiplier
 			};
 
 			window.clear(sf::Color::Black);
 
-			scenes.draw(drawApi);
+			scenes.draw(drawCtx);
 
 			ImGui::SFML::Render(window);
 
