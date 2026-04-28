@@ -49,40 +49,43 @@ public:
 
 		assets.tileSprites.set("solid_block", px::TileSprite{ "solid_block" });
 
-		std::vector<px::Frame> idle{ {{{ 0, 64  }, { 32, 32 }}, sf::milliseconds(200)} };
+		std::vector<px::AnimationFrame> idle{ {{{ 0, 64  }, { 32, 32 }}, sf::milliseconds(200)} };
 
-		std::vector<px::Frame> run;
+		std::vector<px::AnimationFrame> run;
 		for (int32_t x = 0; x < 10; ++x)
 		{
 			run.push_back({ sf::IntRect({x * 32, 0}, {32, 32}), sf::milliseconds(75) });
 		}
 
-		std::vector<px::Frame> jump;
+		std::vector<px::AnimationFrame> jump;
 		for (int32_t x = 0; x < 5; ++x)
 		{
 			jump.push_back({ sf::IntRect({x * 32, 32}, {32, 32}), sf::milliseconds(75) });
 		}
 
-		std::vector<px::Frame> fall;
+		std::vector<px::AnimationFrame> fall;
 		for (int32_t x = 5; x < 7; ++x)
 		{
 			fall.push_back({ sf::IntRect({x * 32, 32}, {32, 32}), sf::milliseconds(100) });
 		}
 
-		px::Clip idleClip(std::move(idle));
-		idleClip.setLooping(true);
-		px::Clip runClip(std::move(run));
-		runClip.setLooping(true);
-		px::Clip jumpClip(std::move(jump));
-		px::Clip fallClip(std::move(fall));
+		px::AnimationClip idleClip(assets.textures.get("entities/player"), std::move(idle), px::AnimationClipType::Looped, { 16, 24 });
+		px::AnimationClip runClip(assets.textures.get("entities/player"), std::move(run), px::AnimationClipType::Looped, { 16, 24 });
+		px::AnimationClip jumpClip(assets.textures.get("entities/player"), std::move(jump), px::AnimationClipType::Sticky, { 16, 24 });
+		px::AnimationClip fallClip(assets.textures.get("entities/player"), std::move(fall), px::AnimationClipType::Sticky, { 16, 24 });
 
-		px::SpritePrefab animations(assets.textures.get("entities/player"));
-		animations.setClip("idle", std::move(idleClip));
-		animations.setClip("run", std::move(runClip));
-		animations.setClip("jump", std::move(jumpClip));
-		animations.setClip("fall", std::move(fallClip));
+		px::AnimationClipMap animations
+		{
+			{
+				{"idle", std::move(idleClip)},
+				{"run", std::move(runClip)},
+				{"jump", std::move(jumpClip)},
+				{"fall", std::move(fallClip)}
+			},
+			"idle"
+		};
 
-		assets.sprites.set("knight", std::move(animations));
+		assets.clipMaps.set("player", std::move(animations));
 
 		px::BackgroundData background(
 			{
@@ -106,6 +109,7 @@ public:
 			sf::Vector2f(0.5f, 0.75f)
 		));
 		player.emplace<Controllable>();
+		player.emplace<px::AnimatedSprite>(assets.clipMaps.get("player"));
 		m_ctx.entities.set("player", std::move(player));
 	}
 

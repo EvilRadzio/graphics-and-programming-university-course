@@ -30,8 +30,6 @@ namespace Scenes
 		Context& m_ctx;
 
 		entt::registry m_registry;
-		
-		px::Animation m_animation;
 
 		sf::Time m_elapsed;
 

@@ -2,190 +2,199 @@
 
 #include <unordered_map>
 #include <string>
+#include <vector>
 
 #include <SFML/Graphics.hpp>
-#include <SFML/Graphics/Transformable.hpp>
 
 namespace px
 {
-	struct Frame
+	struct AnimationFrame
 	{
-		sf::IntRect rect;
+		sf::IntRect rectangle;
 		sf::Time time;
 	};
 
-	class Sprite;
-
-	class Clip
+	enum class AnimationClipType
 	{
-	public:
-
-		Clip(std::vector<Frame>&& frames) :
-			m_frames(std::move(frames))
-		{
-			for (auto& frame : m_frames)
-			{
-				frame.time = std::max(frame.time, sf::milliseconds(10));
-				m_animationTime += frame.time;
-			}
-		}
-
-		void setLooping(bool looping) { m_looping = looping; }
-		bool looping() const { return m_looping; }
-
-	private:
-
-		bool clipEnded(const sf::Time elapsed) const
-		{
-			return !m_looping && m_animationTime <= elapsed;
-		}
-
-		sf::IntRect getFrameRect(const sf::Time elapsed) const
-		{
-			sf::Time into = elapsed;
-
-			if (m_looping)
-			{
-				into = sf::milliseconds(
-					elapsed.asMilliseconds() % m_animationTime.asMilliseconds()
-				);
-			}
-			else if (elapsed >= m_animationTime)
-			{
-				return m_frames.back().rect;
-			}
-
-			for (const auto& frame : m_frames)
-			{
-				if (into < frame.time)
-					return frame.rect;
-				into -= frame.time;
-			}
-
-			return m_frames.back().rect;
-		}
-
-		std::vector<Frame> m_frames;
-		sf::Time m_animationTime{};
-		bool m_looping{};
-
-		friend Sprite;
+		Normal,
+		Looped,
+		Sticky
 	};
 
-	class SpritePrefab
+	struct AnimationClip
 	{
-	public:
-
-		SpritePrefab(const sf::Texture& texture) :
-			m_texture(&texture) {}
-
-		void setClip(const std::string& name, Clip&& clip)
-		{
-			m_clips.insert_or_assign(name, std::move(clip));
-		}
-
-	private:
-
-		std::unordered_map<std::string, Clip> m_clips;
-		const sf::Texture* m_texture;
-
-		friend Sprite;
+		const sf::Texture& texture;
+		std::vector<AnimationFrame> frames;
+		AnimationClipType type{};
+		sf::Vector2f origin{};
 	};
 
-	class Animation
+	struct AnimationClipMap
 	{
+		std::unordered_map<std::string, AnimationClip> map;
+		std::string fallback;
+	};
+
+	class AnimatedSprite {
 	public:
 
-		Animation() = default;
-
-		Animation(const std::string& animation) :
-			m_animation(animation)
-		{}
-
-		Animation(const std::string& animation, sf::Time animationElapsed) :
-			m_animation(animation),
-			m_animationElapsed(animationElapsed)
-		{}
-
-		void startAnimation(const std::string& animation)
+		explicit AnimatedSprite(const AnimationClipMap& clips)
+			: m_clips(&clips)
 		{
-			m_animation = animation;
-			m_animationElapsed = sf::Time::Zero;
+			play(clips.fallback);
 		}
 
-		void animate(const std::string& animation)
+		void setMirrored(bool mirrored)
 		{
-			if (m_animation != animation)
-			{
-				m_animationElapsed = sf::Time::Zero;
-			}
-			m_animation = animation;
-		}
-
-		void setMirrored(bool mirrored) {
 			m_mirrored = mirrored;
 		}
 
-		bool isMirrored() const {
+		bool isMirrored() const
+		{
 			return m_mirrored;
 		}
 
-		void update(const sf::Time variableDt)
+		void play(const std::string& name)
 		{
-			m_animationElapsed += variableDt;
+			if (m_currentClip == name && !m_finished)
+			{
+				return;
+			}
+
+			auto it = m_clips->map.find(name);
+			if (it == m_clips->map.end())
+			{
+				return;
+			}
+
+			m_currentClip = name;
+			m_frameIndex = 0;
+			m_elapsed = sf::Time::Zero;
+			m_finished = false;
+		}
+
+		void update(sf::Time dt)
+		{
+			if (m_finished)
+			{
+				return;
+			}
+			
+			auto it = m_clips->map.find(m_currentClip);
+			if (it == m_clips->map.end())
+			{
+				return;
+			}
+
+			const auto& clip = it->second;
+			if (clip.frames.empty())
+			{
+				return;
+			}
+
+			m_elapsed += dt;
+
+			while (m_elapsed >= clip.frames[m_frameIndex].time)
+			{
+				m_elapsed -= clip.frames[m_frameIndex].time;
+				++m_frameIndex;
+
+				if (m_frameIndex >= clip.frames.size()) {
+					switch (clip.type) {
+					case AnimationClipType::Looped:
+						m_frameIndex = 0;
+						break;
+
+					case AnimationClipType::Normal:
+						m_frameIndex = clip.frames.size() - 1;
+						m_finished = true;
+						m_elapsed = sf::Time::Zero;
+						play(m_clips->fallback);
+						return;
+
+					case AnimationClipType::Sticky:
+						m_frameIndex = clip.frames.size() - 1;
+						m_finished = true;
+						m_elapsed = sf::Time::Zero;
+						break;
+					}
+					break;
+				}
+			}
+		}
+
+		const AnimationClip* currentClipData() const
+		{
+			auto it = m_clips->map.find(m_currentClip);
+			return it == m_clips->map.end()? nullptr : &it->second;
+		}
+
+		bool finished() const
+		{
+			return m_finished;
+		}
+
+		size_t frameIndex() const
+		{
+			return m_frameIndex;
+		}
+
+		const std::string& currentClip() const
+		{
+			return m_currentClip;
 		}
 
 	private:
 
-		std::string m_animation;
-		sf::Time m_animationElapsed;
+		const AnimationClipMap* m_clips;
+		std::string m_currentClip;
+		size_t m_frameIndex{};
+		sf::Time m_elapsed{};
 		bool m_mirrored{};
-
-		friend Sprite;
+		bool m_finished{};
 	};
 
-	class Sprite : public sf::Drawable, public sf::Transformable
-	{
+	class SpriteRenderer : public sf::Drawable, public sf::Transformable {
 	public:
 
-		Sprite(const SpritePrefab& spritePrefab, const Animation& spriteInfo, const sf::Time elapsed) :
-			m_spritePrefab(spritePrefab),
-			m_spriteInfo(spriteInfo),
-			m_elapsed(elapsed)
-		{}
+		SpriteRenderer(const AnimatedSprite& animation)
+		{
+			const auto* clip = animation.currentClipData();
+			if (!clip || clip->frames.empty())
+			{
+				return;
+			}
+
+			m_texture = &clip->texture;
+			m_rect = clip->frames[animation.frameIndex()].rectangle;
+			m_origin = clip->origin;
+
+			if (animation.isMirrored())
+			{
+				int32_t width = m_rect.size.x;
+				m_rect.size.x = -width;
+				m_rect.position.x += width;
+			}
+		}
 
 	private:
 
 		void draw(sf::RenderTarget& target, sf::RenderStates states) const override
 		{
-			if (!m_spritePrefab.m_clips.count(m_spriteInfo.m_animation))
+			if (!m_texture)
 			{
 				return;
 			}
 
-			sf::Sprite sprite(*m_spritePrefab.m_texture);
-			bool looping = m_spritePrefab.m_clips.at(m_spriteInfo.m_animation).looping();
-			sf::IntRect rect = m_spritePrefab.m_clips.at(m_spriteInfo.m_animation).getFrameRect(looping? m_elapsed : m_spriteInfo.m_animationElapsed);
+			sf::Sprite sprite(*m_texture, m_rect);
+			sprite.setOrigin(m_origin);
 
-			if (m_spriteInfo.m_mirrored)
-			{
-				int32_t width = rect.size.x;
-				rect.size.x = -width;
-				rect.position.x += width;
-			}
-
-			sprite.setTextureRect(rect);
-			sprite.setScale(getScale());
-			sprite.setPosition(getPosition());
-			sprite.setOrigin(getOrigin());
-
-			target.draw(sprite);
+			states.transform *= getTransform();
+			target.draw(sprite, states);
 		}
 
-		const SpritePrefab& m_spritePrefab;
-		const Animation& m_spriteInfo;
-		sf::Time m_elapsed;
-
-		friend sf::RenderTarget;
+		const sf::Texture* m_texture{};
+		sf::IntRect m_rect{};
+		sf::Vector2f m_origin{};
 	};
 }

@@ -61,6 +61,8 @@ namespace px
 		float unit{};
 		float baseMultiplier{};
 
+		sf::Time elapsed{};
+
 		EngineApi engApi{
 			scenes,
 			assets,
@@ -153,20 +155,9 @@ namespace px
 			postEventPreUpdate();
 
 			sf::Time realDt = clock.restart();
+			elapsed += realDt;
 
 			ImGui::SFML::Update(window, realDt);
-
-			mapping.setUnderlyingInput(frameInput);
-
-			transition.update(realDt.asSeconds());
-
-			UpdateCtx updateCtx{
-				window,
-				realDt,
-				transition
-			};
-
-			scenes.update(updateCtx);
 
 			acumulator = std::min(acumulator + realDt, k_fixedDt * 4.001f);
 
@@ -184,6 +175,18 @@ namespace px
 				tickInput.newUpdate();
 				acumulator -= k_fixedDt;
 			}
+
+			mapping.setUnderlyingInput(frameInput);
+
+			transition.update(realDt.asSeconds());
+
+			UpdateCtx updateCtx{
+				window,
+				realDt,
+				transition
+			};
+
+			scenes.update(updateCtx);
 
 			postUpdatePreDraw();
 

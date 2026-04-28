@@ -89,8 +89,6 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 		ctx.window.setView(view);
 	}
 
-	auto view = m_registry.view<const Controllable, const Transform>();
-
 	for (size_t y = 0; y < size.y; ++y) for (size_t x = 0; x < size.x; ++x)
 	{
 		sf::Vector2u position(x, y);
@@ -114,40 +112,40 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 		}
 	}
 
-	view.each([&](const auto& _, const auto& transform) {
+	auto view = m_registry.view<const px::AnimatedSprite, const Transform>();
+
+	view.each([&](const auto& sprite, const auto& transform) {
 		sf::Vector2f position = px::lerp(transform.oldPos, transform.pos, ctx.alpha) * static_cast<float>(ctx.unitPixels);
 
-		px::Sprite sprite(api.assets.sprites.get("knight"), m_animation, m_elapsed);
-		sprite.setScale(sf::Vector2f{ 1, 1 } *ctx.baseMultiplier);
-		sprite.setOrigin({ 16, 24 });
-		sprite.setPosition(position);
-		ctx.window.draw(sprite);
+		px::SpriteRenderer renderer(sprite);
+		renderer.setPosition(position);
+		ctx.window.draw(renderer);
 	});
 }
 
 void Scenes::Platforming::advanceAnimation(px::UpdateCtx& ctx)
 {
-	auto view = m_registry.view<const Controllable, const Transform>();
-	view.each([&](const auto& controllable, const auto& transform) {
-		m_animation.setMirrored(m_dir == -1);
-		m_animation.update(ctx.dt);
+	auto view = m_registry.view<const Controllable, const Transform, px::AnimatedSprite>();
+	view.each([&](const auto& controllable, const auto& transform, auto& sprite) {
+		sprite.setMirrored(m_dir == -1);
+		sprite.update(ctx.dt);
 
 		if (!controllable.grounded)
 		{
 			if (transform.vel.y < 0.0f)
 			{
-				m_animation.animate("jump");
+				sprite.play("jump");
 				return;
 			}
-			m_animation.animate("fall");
+			sprite.play("fall");
 			return;
 		}
 		if (transform.vel.x == 0.0f)
 		{
-			m_animation.animate("idle");
+			sprite.play("idle");
 			return;
 		}
-		m_animation.animate("run");
+		sprite.play("run");
 	});
 }
 

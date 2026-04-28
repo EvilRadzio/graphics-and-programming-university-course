@@ -14,7 +14,7 @@ namespace px
 		Registry<sf::Texture> textures{};
 		Registry<TileSprite> tileSprites{};
 		Registry<BackgroundData> backgrounds{};
-		Registry<SpritePrefab> sprites{};
+		Registry<AnimationClipMap> clipMaps{};
 		sf::Font font{};
 	};
 }
