@@ -16,3 +16,9 @@ struct Controllable {
 	bool canJump{};
 	bool grounded{};
 };
+
+struct Lifetime
+{
+	sf::Time lived;
+	sf::Time max;
+};

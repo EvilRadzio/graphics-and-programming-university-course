@@ -67,11 +67,12 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 {
 	ctx.window.clear(sf::Color::Blue);
 
-	sf::Vector2u size = m_map.size();
+	const sf::Vector2u size = m_map.size();
+	const float unitPixels = api.scaling.getUnit();
 	
 	{
 		sf::Vector2f windowSize = static_cast<sf::Vector2f>(ctx.window.getSize());
-		sf::Vector2f halfScreenTiles = windowSize / static_cast<float>(ctx.unitPixels) / 2.0f;
+		sf::Vector2f halfScreenTiles = windowSize / static_cast<float>(unitPixels) / 2.0f;
 
 		sf::Vector2f position = px::lerp(m_oldCameraPosition, m_cameraPosition, ctx.alpha);
 		position.x = std::min(position.x, m_map.size().x - halfScreenTiles.x);
@@ -79,10 +80,10 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 		position.x = std::max(position.x, halfScreenTiles.x);
 		position.y = std::max(position.y, halfScreenTiles.y);
 
-		ctx.window.draw(px::Background(api.assets.backgrounds.get("background"), position.x * ctx.unitPixels));
+		ctx.window.draw(px::Background(api.assets.backgrounds.get("background"), position.x * unitPixels));
 
 		sf::View view(
-			position * static_cast<float>(ctx.unitPixels),
+			position * static_cast<float>(unitPixels),
 			static_cast<sf::Vector2f>(ctx.window.getSize())
 		);
 
@@ -97,16 +98,9 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 		{
 			auto sprite(api.assets.tileSprites.get(m_map.at(position).sprite).get(getAdjacent(m_map, position), api.assets.textures));
 
-			sprite.setPosition(sf::Vector2f{
-				static_cast<float>(x * ctx.unitPixels),
-				static_cast<float>(y * ctx.unitPixels)
-			});
+			sprite.setPosition(sf::Vector2f{ x * unitPixels, y * unitPixels });
 
-			auto bounds = sprite.getLocalBounds();
-			sprite.setScale(sf::Vector2f{
-				static_cast<float>(ctx.unitPixels) / bounds.size.x,
-				static_cast<float>(ctx.unitPixels) / bounds.size.y
-			});
+			sprite.setScale(api.scaling.getScale());
 
 			ctx.window.draw(sprite);
 		}
@@ -115,10 +109,11 @@ void Scenes::Platforming::draw(px::DrawCtx& ctx) const
 	auto view = m_registry.view<const px::AnimatedSprite, const Transform>();
 
 	view.each([&](const auto& sprite, const auto& transform) {
-		sf::Vector2f position = px::lerp(transform.oldPos, transform.pos, ctx.alpha) * static_cast<float>(ctx.unitPixels);
+		sf::Vector2f position = px::lerp(transform.oldPos, transform.pos, ctx.alpha) * static_cast<float>(unitPixels);
 
 		px::SpriteRenderer renderer(sprite);
 		renderer.setPosition(position);
+		renderer.setScale(api.scaling.getScale());
 		ctx.window.draw(renderer);
 	});
 }
